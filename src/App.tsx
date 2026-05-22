@@ -34,7 +34,7 @@ const App = () => {
             <Route
               path="/"
               element={
-                <main className="max-w-6xl mx-auto px-6 py-6 flex gap-6">
+                <main className="max-w-6xl mx-auto px-4 md:px-6 py-6 flex flex-col md:flex-row gap-6">
                   <div className="flex-1">
                     {activeTab === 'matches' && <MatchList />}
                     {activeTab === 'standings' && (
@@ -47,13 +47,13 @@ const App = () => {
                         <p className="text-gray-400 text-sm">Stats — coming soon</p>
                       </div>
                     )}
-                    {activeTab === 'favorites' && (
-                      <div className="flex items-center justify-center h-64">
-                        {activeTab === 'favorites' && <FavoritesPage />}
-                      </div>
-                    )}
+                    {activeTab === 'favorites' && <FavoritesPage />}
                   </div>
-                  <Sidebar />
+
+                  {/* Sidebar — sakriven na mobilnom */}
+                  <div className="hidden md:block">
+                    <Sidebar />
+                  </div>
                 </main>
               }
             />
