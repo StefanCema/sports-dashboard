@@ -1,21 +1,17 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { useTodaysMatches, useLiveMatches } from '../hooks/useMatches';
+import { useAllMatches } from '../hooks/useMatches';
 import { LiveBadge } from '../components/matches/LiveBadge';
-import type { Match } from '../types';
 
 export const MatchDetailPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { matches, isLoading } = useAllMatches();
 
-  const { data: liveMatches } = useLiveMatches();
-  const { data: todaysMatches } = useTodaysMatches();
+  if (isLoading) {
+      return <div className="flex items-center justify-center h-64">Loading match...</div>;
+    }
 
-  const allMatches: Match[] = [
-    ...(liveMatches ?? []),
-    ...(todaysMatches ?? []),
-  ];
-
-  const match = allMatches.find(m => m.id === id);
+  const match = matches.find(m => m.id === id);
 
   if (!match) {
     return (
@@ -107,7 +103,6 @@ export const MatchDetailPage = () => {
   );
 };
 
-// Helper komponenta za stat bar
 const StatBar = ({ label, value }: { label: string; value: string }) => {
   const [home, away] = value.split('-').map(Number);
   const total = home + away;

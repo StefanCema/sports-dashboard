@@ -1,13 +1,35 @@
-import { useTodaysMatches } from '../../hooks/useMatches';
+import { useAllMatches } from '../../hooks/useMatches';
 
 export const Sidebar = () => {
-  const { data: matches } = useTodaysMatches();
+  const { matches, isLoading } = useAllMatches();
 
   const liveCount = matches?.filter(m => m.status === 'live').length ?? 0;
   const upcomingMatches = matches?.filter(m => m.status === 'upcoming').slice(0, 4) ?? [];
+if (isLoading) {
+    return (
+      <aside className="w-72 shrink-0 space-y-4">
+        {/* Loading Quick Stats */}
+       <div className="bg-white border border-gray-100 rounded-xl p-4 animate-pulse">
+          <div className="h-4 w-36 bg-gray-200 rounded mb-4" />
+          <div className="grid grid-cols-2 gap-3">
+            <div className="h-20 bg-gray-100 rounded-lg" />
+            <div className="h-20 bg-gray-100 rounded-lg" />
+          </div>
+        </div>
+
+        {/* Loading Upcoming */}
+        <div className="bg-white border border-gray-100 rounded-xl p-4 animate-pulse">
+         <div className="h-4 w-24 bg-gray-200 rounded mb-4" />
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="h-12 bg-gray-100 rounded mb-3 last:mb-0" />
+          ))}
+        </div>
+      </aside>
+    );
+  }
 
   return (
-    <aside className="w-72 shrink-0">
+   <aside className="w-72 shrink-0">
       {/* Quick Stats */}
       <div className="bg-white border border-gray-100 rounded-xl p-4 mb-4">
         <p className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-3">
@@ -19,7 +41,7 @@ export const Sidebar = () => {
             <p className="text-xs text-gray-400 mt-0.5">Live matches</p>
           </div>
           <div className="bg-gray-50 rounded-lg p-3">
-            <p className="text-2xl font-semibold text-gray-800">{matches?.length ?? 0}</p>
+            <p className="text-2xl font-semibold text-gray-800">{matches.length}</p>
             <p className="text-xs text-gray-400 mt-0.5">Total today</p>
           </div>
         </div>
@@ -34,13 +56,13 @@ export const Sidebar = () => {
           <p className="text-sm text-gray-400">No upcoming matches.</p>
         )}
         {upcomingMatches.map((match, i) => (
-          <div
-            key={match.id}
+         <div
+           key={match.id}
             className={`flex items-center justify-between py-2.5 ${
               i !== upcomingMatches.length - 1 ? 'border-b border-gray-100' : ''
             }`}
-          >
-            <div>
+         >
+           <div>
               <p className="text-sm text-gray-700">
                 {match.homeTeam} vs {match.awayTeam}
               </p>
@@ -54,4 +76,4 @@ export const Sidebar = () => {
       </div>
     </aside>
   );
-};
+ };

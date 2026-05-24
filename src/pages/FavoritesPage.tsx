@@ -1,19 +1,20 @@
-import { useFavorites } from '../hooks/useFavorites';
-import { useLiveMatches, useTodaysMatches } from '../hooks/useMatches';
+import { useFavorites } from '../contexts/FavoritesContext';
+import { useAllMatches } from '../hooks/useMatches';
 import { MatchCard } from '../components/matches/MatchCard';
-import type { Match } from '../types';
 
 export const FavoritesPage = () => {
   const { favorites } = useFavorites();
-  const { data: liveMatches } = useLiveMatches();
-  const { data: todaysMatches } = useTodaysMatches();
+  const { matches, isLoading } = useAllMatches();
 
-  const allMatches: Match[] = [
-    ...(liveMatches ?? []),
-    ...(todaysMatches ?? []),
-  ];
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <p className="text-gray-400">Loading your favorites...</p>
+      </div>
+    );
+  }
 
-  const favoriteMatches = allMatches.filter(m => favorites.includes(m.id));
+  const favoriteMatches = matches.filter(m => favorites.includes(m.id));
 
   if (favorites.length === 0) {
     return (

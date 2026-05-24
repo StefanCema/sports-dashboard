@@ -3,6 +3,8 @@ import { MatchCard } from './MatchCard';
 import { FilterChip } from '../ui/FilterChip';
 import { useFilteredMatches } from '../../hooks/useMatches';
 import type { SportFilter } from '../../types';
+import { SkeletonList } from '../ui/SkeletonCard';
+import { useMemo } from 'react';
 
 const FILTERS: { label: string; value: SportFilter }[] = [
   { label: 'All Sports', value: 'all' },
@@ -16,16 +18,17 @@ export const MatchList = () => {
   const [activeFilter, setActiveFilter] = useState<SportFilter>('all');
   const { matches, isLoading, isError } = useFilteredMatches(activeFilter);
 
-  const liveMatches = matches.filter(m => m.status === 'live');
-  const finishedMatches = matches.filter(m => m.status === 'finished');
-  const upcomingMatches = matches.filter(m => m.status === 'upcoming');
+  const liveMatches = useMemo(() =>
+    matches.filter(m => m.status === 'live'), [matches]);
+
+  const upcomingMatches = useMemo(() =>
+      matches.filter(m => m.status === 'upcoming'), [matches]);
+
+  const finishedMatches = useMemo(() =>
+      matches.filter(m => m.status === 'finished'), [matches]);
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
+    return <SkeletonList />;
   }
 
   if (isError) {

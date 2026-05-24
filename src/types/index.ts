@@ -5,21 +5,22 @@ export interface Match {
   homeScore: number;
   awayScore: number;
   status: 'live' | 'finished' | 'upcoming';
-  minute?: string;      
+  minute?: string;
   league: string;
   sport: 'football' | 'basketball' | 'tennis' | 'baseball';
-  startTime: string;    
+  startTime: string;
   stats?: MatchStats;
 }
 
 export interface MatchStats {
-  possession?: string;   
-  shots?: string;       
-  corners?: string;     
-  fouls?: string;        
-  rebounds?: string;    
+  possession?: string;
+  shots?: string;
+  corners?: string;
+  fouls?: string;
+  rebounds?: string;
 }
 
 export type SportFilter = 'all' | 'football' | 'basketball' | 'tennis' | 'baseball';
 
-export type NavTab = 'matches' | 'standings' | 'stats' | 'favorites';
+// Vrednosti su sada URL path-ovi
+export type NavTab = '/' | '/standings' | '/stats' | '/favorites';

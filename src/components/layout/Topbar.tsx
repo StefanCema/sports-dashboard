@@ -1,28 +1,36 @@
 import { useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { NavTab } from '../ui/NavTab';
 import type { NavTab as NavTabType } from '../../types';
 
 interface TopbarProps {
-  activeTab: NavTabType;
-  onTabChange: (tab: NavTabType) => void;
+  isDark: boolean;
+  onToggleDark: () => void;
 }
 
 const TABS: { label: string; value: NavTabType }[] = [
-  { label: 'Matches', value: 'matches' },
-  { label: 'Standings', value: 'standings' },
-  { label: 'Stats', value: 'stats' },
-  { label: 'Favorites', value: 'favorites' },
+  { label: 'Matches',   value: '/'          },
+  { label: 'Standings', value: '/standings' },
+  { label: 'Stats',     value: '/stats'     },
+  { label: 'Favorites', value: '/favorites' },
 ];
 
-export const Topbar = ({ activeTab, onTabChange }: TopbarProps) => {
+export const Topbar = ({ isDark, onToggleDark }: TopbarProps) => {
   const [menuOpen, setMenuOpen] = useState(false);
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
+
+  const handleTab = (value: NavTabType) => {
+    navigate(value);
+    setMenuOpen(false);
+  };
 
   return (
-    <header className="bg-white border-b border-gray-100 px-6 sticky top-0 z-10">
+    <header className="bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 px-6 sticky top-0 z-10">
       <div className="h-14 flex items-center justify-between">
         {/* Logo */}
         <div className="flex items-center gap-2">
-          <span className="text-lg font-semibold text-gray-900">
+          <span className="text-lg font-semibold text-gray-900 dark:text-white">
             Sport<span className="text-emerald-500">Live</span>
           </span>
         </div>
@@ -33,8 +41,8 @@ export const Topbar = ({ activeTab, onTabChange }: TopbarProps) => {
             <NavTab
               key={tab.value}
               label={tab.label}
-              active={activeTab === tab.value}
-              onClick={() => onTabChange(tab.value)}
+              active={pathname === tab.value}
+              onClick={() => handleTab(tab.value)}
             />
           ))}
         </nav>
@@ -46,6 +54,14 @@ export const Topbar = ({ activeTab, onTabChange }: TopbarProps) => {
           </svg>
           <span className="text-sm text-gray-400">Search teams...</span>
         </div>
+
+        {/* Dark mode toggle */}
+        <button
+          onClick={onToggleDark}
+          className="p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 text-lg"
+        >
+          {isDark ? '☀️' : '🌙'}
+        </button>
 
         {/* Mobile hamburger */}
         <button
@@ -65,11 +81,8 @@ export const Topbar = ({ activeTab, onTabChange }: TopbarProps) => {
             <NavTab
               key={tab.value}
               label={tab.label}
-              active={activeTab === tab.value}
-              onClick={() => {
-                onTabChange(tab.value);
-                setMenuOpen(false);
-              }}
+              active={pathname === tab.value}
+              onClick={() => handleTab(tab.value)}
             />
           ))}
         </div>
