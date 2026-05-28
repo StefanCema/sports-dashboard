@@ -4,24 +4,24 @@ export const Sidebar = () => {
   const { matches, isLoading } = useAllMatches();
 
   const liveCount = matches?.filter(m => m.status === 'live').length ?? 0;
-  const upcomingMatches = matches?.filter(m => m.status === 'upcoming').slice(0, 4) ?? [];
-if (isLoading) {
+  const upcomingMatches = matches?.filter(m => m.status === 'upcoming').slice(0, 4);
+  if (isLoading) {
     return (
       <aside className="w-72 shrink-0 space-y-4">
         {/* Loading Quick Stats */}
-       <div className="bg-white border border-gray-100 rounded-xl p-4 animate-pulse">
-          <div className="h-4 w-36 bg-gray-200 rounded mb-4" />
+        <div className="bg-white border border-gray-100 dark:border-gray-700 rounded-xl p-4 animate-pulse">
+          <div className="h-4 w-36 bg-gray-200 dark:bg-gray-700 rounded mb-4" />
           <div className="grid grid-cols-2 gap-3">
-            <div className="h-20 bg-gray-100 rounded-lg" />
-            <div className="h-20 bg-gray-100 rounded-lg" />
+            <div className="h-20 bg-gray-100 dark:bg-gray-700 rounded-lg" />
+            <div className="h-20 bg-gray-100 dark:bg-gray-700 rounded-lg" />
           </div>
         </div>
 
         {/* Loading Upcoming */}
-        <div className="bg-white border border-gray-100 rounded-xl p-4 animate-pulse">
-         <div className="h-4 w-24 bg-gray-200 rounded mb-4" />
+        <div className="bg-white border border-gray-100 dark:border-gray-700 rounded-xl p-4 animate-pulse">
+          <div className="h-4 w-28 bg-gray-200 dark:bg-gray-700 rounded mb-4" />
           {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="h-12 bg-gray-100 rounded mb-3 last:mb-0" />
+            <div key={i} className="h-12 bg-gray-100 dark:bg-gray-700 rounded mb-3 last:mb-0" />
           ))}
         </div>
       </aside>
