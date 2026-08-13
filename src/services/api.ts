@@ -1,17 +1,17 @@
-import type { Match } from '../types';
+import type { Match } from "../types";
 
-const API_BASE = '/api/football';
+const API_BASE = "/api/football";
 
 type RawStatus =
-  | 'SCHEDULED'
-  | 'TIMED'
-  | 'IN_PLAY'
-  | 'PAUSED'
-  | 'FINISHED'
-  | 'POSTPONED'
-  | 'SUSPENDED'
-  | 'CANCELLED'
-  | 'AWARDED';
+  | "SCHEDULED"
+  | "TIMED"
+  | "IN_PLAY"
+  | "PAUSED"
+  | "FINISHED"
+  | "POSTPONED"
+  | "SUSPENDED"
+  | "CANCELLED"
+  | "AWARDED";
 
 interface RawMatch {
   id: number;
@@ -30,12 +30,12 @@ interface MatchesResponse {
   matches: RawMatch[];
 }
 
-const STATUS_MAP: Record<RawStatus, Match['status'] | null> = {
-  SCHEDULED: 'upcoming',
-  TIMED: 'upcoming',
-  IN_PLAY: 'live',
-  PAUSED: 'live',
-  FINISHED: 'finished',
+const STATUS_MAP: Record<RawStatus, Match["status"] | null> = {
+  SCHEDULED: "upcoming",
+  TIMED: "upcoming",
+  IN_PLAY: "live",
+  PAUSED: "live",
+  FINISHED: "finished",
   POSTPONED: null,
   SUSPENDED: null,
   CANCELLED: null,
@@ -48,10 +48,16 @@ const isSameDay = (a: Date, b: Date) =>
   a.getDate() === b.getDate();
 
 const formatStartTime = (kickoff: Date): string => {
-  const time = kickoff.toLocaleTimeString('sr-RS', { hour: '2-digit', minute: '2-digit' });
+  const time = kickoff.toLocaleTimeString("sr-RS", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
   if (isSameDay(kickoff, new Date())) return time;
 
-  const day = kickoff.toLocaleDateString('sr-RS', { day: 'numeric', month: 'short' });
+  const day = kickoff.toLocaleDateString("sr-RS", {
+    day: "numeric",
+    month: "short",
+  });
   return `${day} ${time}`;
 };
 
@@ -68,14 +74,16 @@ const mapMatch = (raw: RawMatch): Match | null => {
     homeScore: raw.score.fullTime.home ?? 0,
     awayScore: raw.score.fullTime.away ?? 0,
     status,
-    minute: status === 'live' && raw.minute ? `${raw.minute}'` : undefined,
+    minute: status === "live" && raw.minute ? `${raw.minute}'` : undefined,
     league: raw.competition.name,
-    sport: 'football',
+    sport: "football",
     startTime: formatStartTime(kickoff),
   };
 };
 
-const fetchMatches = async (params: Record<string, string>): Promise<Match[]> => {
+const fetchMatches = async (
+  params: Record<string, string>,
+): Promise<Match[]> => {
   const query = new URLSearchParams(params).toString();
   const url = `${API_BASE}/matches?${query}`;
   const res = await fetch(url);
@@ -115,7 +123,7 @@ export const fetchTodaysMatches = async (): Promise<Match[]> => {
 
 export const fetchLiveMatches = async (): Promise<Match[]> => {
   const all = await fetchTodaysMatches();
-  return all.filter(m => m.status === 'live');
+  return all.filter((m) => m.status === "live");
 };
 
 // STANDINGS
@@ -145,7 +153,7 @@ interface RawStandingRow {
 }
 
 interface RawStandingsGroup {
-  type: 'TOTAL' | 'HOME' | 'AWAY';
+  type: "TOTAL" | "HOME" | "AWAY";
   table: RawStandingRow[];
 }
 
@@ -153,7 +161,9 @@ interface StandingsResponse {
   standings: RawStandingsGroup[];
 }
 
-export const fetchStandings = async (competitionCode: string): Promise<StandingEntry[]> => {
+export const fetchStandings = async (
+  competitionCode: string,
+): Promise<StandingEntry[]> => {
   const url = `${API_BASE}/competitions/${competitionCode}/standings`;
   const res = await fetch(url);
 
@@ -162,10 +172,10 @@ export const fetchStandings = async (competitionCode: string): Promise<StandingE
   }
 
   const data: StandingsResponse = await res.json();
-  const total = data.standings.find(s => s.type === 'TOTAL');
-  if (!total) return[];
+  const total = data.standings.find((s) => s.type === "TOTAL");
+  if (!total) return [];
 
-  return total.table.map(row =>({
+  return total.table.map((row) => ({
     position: row.position,
     team: row.team.shortName ?? row.team.name,
     played: row.playedGames,
@@ -176,4 +186,58 @@ export const fetchStandings = async (competitionCode: string): Promise<StandingE
     goalsAgainst: row.goalsAgainst,
     points: row.points,
   }));
+};
+
+// ---- Top scorers ----
+
+export interface TopScorer {
+  playerId: number;
+  playerName: string;
+  team: string;
+  nationality: string | null;
+  goals: number;
+  assists: number | null;
+  playedMatches: number;
 }
+
+interface RawScorer {
+  player: { id: number; name: string; nationality: string | null };
+  team: { name: string; shortName: string | null };
+  playedMatches: number;
+  goals: number;
+  assists: number | null;
+}
+
+interface ScorersResponse {
+  scorers: RawScorer[];
+}
+
+export const fetchTopScorers = async (
+  competitionCode: string,
+): Promise<TopScorer[]> => {
+  const url = `${API_BASE}/competitions/${competitionCode}/scorers?limit=10`;
+
+  if (import.meta.env.DEV) console.log("[api.ts] fetch ->", url);
+
+  const res = await fetch(url);
+
+  if (import.meta.env.DEV) console.log("[api.ts] scorers status:", res.status);
+
+  if (!res.ok) {
+    const body = await res.text();
+    if (import.meta.env.DEV) console.log("[api.ts] scorers error body:", body);
+    throw new Error(`football-data.org scorers error: ${res.status} — ${body}`);
+  }
+
+  const data: ScorersResponse = await res.json();
+
+  return data.scorers.map((s) => ({
+    playerId: s.player.id,
+    playerName: s.player.name,
+    team: s.team.shortName ?? s.team.name,
+    nationality: s.player.nationality,
+    goals: s.goals,
+    assists: s.assists,
+    playedMatches: s.playedMatches,
+  }));
+};

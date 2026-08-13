@@ -1,42 +1,38 @@
-import { useState } from 'react';
-import { useStandings } from '../hooks/useStandings';
-
-const LEAGUES: { code: string; label: string; flag: string }[] = [
-  { code: 'PL', label: 'Premier League', flag: 'https://crests.football-data.org/PL.png' },
-  { code: 'PD', label: 'La Liga', flag: 'https://crests.football-data.org/PD.png' },
-  { code: 'BL1', label: 'Bundesliga', flag: 'https://crests.football-data.org/BL1.png' },
-  { code: 'FL1', label: 'Ligue 1', flag: 'https://crests.football-data.org/FL1.png' },
-  { code: 'SA', label: 'Serie A', flag: 'https://crests.football-data.org/SA.png' },
-  { code: 'DED', label: 'Eredivisie', flag: '' },
-  { code: 'ELC', label: 'Championship', flag: 'https://crests.football-data.org/ELC.png' }
-];
+import { useState } from "react";
+import { useStandings } from "../hooks/useStandings";
+import { LEAGUES } from "../constants/leagues";
 
 export const StandingsPage = () => {
   const [activeLeague, setActiveLeague] = useState(LEAGUES[0].code);
-  const { data: standings = [], isLoading, isError } = useStandings(activeLeague);
+  const {
+    data: standings = [],
+    isLoading,
+    isError,
+  } = useStandings(activeLeague);
 
   return (
     <div>
       {/* League tabs */}
       <div className="flex gap-2 mb-5">
-        {LEAGUES.map(league => (
+        {LEAGUES.map((league) => (
           <button
             key={league.code}
             onClick={() => setActiveLeague(league.code)}
             className={`px-4 py-1.5 rounded-full text-sm font-medium border transition-all duration-150
-              ${activeLeague === league.code
-                ? 'bg-emerald-100 border-emerald-400 text-emerald-800'
-                : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400'
+              ${
+                activeLeague === league.code
+                  ? "bg-emerald-100 border-emerald-400 text-emerald-800"
+                  : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400"
               }`}
           >
-              {league.flag ? (
-                  <img 
-                    src={league.flag} 
-                    style={{ height: '50px', display: 'inline-block' }} 
-                  />
-              ) : (
-                league.label
-              )}
+            {league.flag ? (
+              <img
+                src={league.flag}
+                style={{ height: "50px", display: "inline-block" }}
+              />
+            ) : (
+              league.label
+            )}
           </button>
         ))}
       </div>
@@ -49,7 +45,9 @@ export const StandingsPage = () => {
 
       {isError && (
         <div className="flex items-center justify-center h-64">
-          <p className="text-gray-400 text-sm">Failed to load standings. Try again later.</p>
+          <p className="text-gray-400 text-sm">
+            Failed to load standings. Try again later.
+          </p>
         </div>
       )}
 
@@ -74,27 +72,39 @@ export const StandingsPage = () => {
                 key={s.team}
                 className={`grid grid-cols-9 gap-2 px-4 py-3 text-sm transition-colors
                   hover:bg-gray-50 dark:hover:bg-gray-700
-                  ${i !== standings.length - 1 ? 'border-b border-gray-50 dark:border-gray-700' : ''}
+                  ${i !== standings.length - 1 ? "border-b border-gray-50 dark:border-gray-700" : ""}
                 `}
               >
                 <div className="col-span-1">
-                  <span className={`
+                  <span
+                    className={`
                     font-medium
-                    ${s.position <= 4 ? 'text-emerald-500' : ''}
-                    ${s.position > 4 && s.position <= 6 ? 'text-blue-400' : ''}
-                    ${s.position > 6 ? 'text-gray-400 dark:text-gray-500' : ''}
-                  `}>
+                    ${s.position <= 4 ? "text-emerald-500" : ""}
+                    ${s.position > 4 && s.position <= 6 ? "text-blue-400" : ""}
+                    ${s.position > 6 ? "text-gray-400 dark:text-gray-500" : ""}
+                  `}
+                  >
                     {s.position}
                   </span>
                 </div>
                 <div className="col-span-3 font-medium text-gray-800 dark:text-gray-100">
                   {s.team}
                 </div>
-                <div className="text-center text-gray-500 dark:text-gray-400">{s.played}</div>
-                <div className="text-center text-gray-500 dark:text-gray-400">{s.won}</div>
-                <div className="text-center text-gray-500 dark:text-gray-400">{s.drawn}</div>
-                <div className="text-center text-gray-500 dark:text-gray-400">{s.lost}</div>
-                <div className="text-center font-bold text-gray-800 dark:text-gray-100">{s.points}</div>
+                <div className="text-center text-gray-500 dark:text-gray-400">
+                  {s.played}
+                </div>
+                <div className="text-center text-gray-500 dark:text-gray-400">
+                  {s.won}
+                </div>
+                <div className="text-center text-gray-500 dark:text-gray-400">
+                  {s.drawn}
+                </div>
+                <div className="text-center text-gray-500 dark:text-gray-400">
+                  {s.lost}
+                </div>
+                <div className="text-center font-bold text-gray-800 dark:text-gray-100">
+                  {s.points}
+                </div>
               </div>
             ))}
 
