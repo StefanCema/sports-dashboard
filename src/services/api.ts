@@ -1,70 +1,179 @@
 import type { Match } from '../types';
 
-export const fetchLiveMatches = async (): Promise<Match[]> => {
-  return [
-    {
-      id: '1',
-      homeTeam: 'Arsenal',
-      awayTeam: 'Man City',
-      homeScore: 2,
-      awayScore: 1,
-      status: 'live',
-      minute: "64'",
-      league: 'Premier League',
-      sport: 'football',
-      startTime: '20:00',
-      stats: { possession: '54-46', shots: '8-5', corners: '4-3' },
-    },
-    {
-      id: '2',
-      homeTeam: 'Lakers',
-      awayTeam: 'Celtics',
-      homeScore: 87,
-      awayScore: 91,
-      status: 'live',
-      minute: 'Q3 8:42',
-      league: 'NBA',
-      sport: 'basketball',
-      startTime: '21:00',
-      stats: { rebounds: '31-28', fouls: '14-12' },
-    },
-  ];
+const API_BASE = '/api/football';
+
+type RawStatus =
+  | 'SCHEDULED'
+  | 'TIMED'
+  | 'IN_PLAY'
+  | 'PAUSED'
+  | 'FINISHED'
+  | 'POSTPONED'
+  | 'SUSPENDED'
+  | 'CANCELLED'
+  | 'AWARDED';
+
+interface RawMatch {
+  id: number;
+  utcDate: string;
+  status: RawStatus;
+  minute?: number | null;
+  competition: { name: string };
+  homeTeam: { name: string; shortName: string | null };
+  awayTeam: { name: string; shortName: string | null };
+  score: {
+    fullTime: { home: number | null; away: number | null };
+  };
+}
+
+interface MatchesResponse {
+  matches: RawMatch[];
+}
+
+const STATUS_MAP: Record<RawStatus, Match['status'] | null> = {
+  SCHEDULED: 'upcoming',
+  TIMED: 'upcoming',
+  IN_PLAY: 'live',
+  PAUSED: 'live',
+  FINISHED: 'finished',
+  POSTPONED: null,
+  SUSPENDED: null,
+  CANCELLED: null,
+  AWARDED: null,
+};
+
+const isSameDay = (a: Date, b: Date) =>
+  a.getFullYear() === b.getFullYear() &&
+  a.getMonth() === b.getMonth() &&
+  a.getDate() === b.getDate();
+
+const formatStartTime = (kickoff: Date): string => {
+  const time = kickoff.toLocaleTimeString('sr-RS', { hour: '2-digit', minute: '2-digit' });
+  if (isSameDay(kickoff, new Date())) return time;
+
+  const day = kickoff.toLocaleDateString('sr-RS', { day: 'numeric', month: 'short' });
+  return `${day} ${time}`;
+};
+
+const mapMatch = (raw: RawMatch): Match | null => {
+  const status = STATUS_MAP[raw.status];
+  if (!status) return null;
+
+  const kickoff = new Date(raw.utcDate);
+
+  return {
+    id: String(raw.id),
+    homeTeam: raw.homeTeam.shortName ?? raw.homeTeam.name,
+    awayTeam: raw.awayTeam.shortName ?? raw.awayTeam.name,
+    homeScore: raw.score.fullTime.home ?? 0,
+    awayScore: raw.score.fullTime.away ?? 0,
+    status,
+    minute: status === 'live' && raw.minute ? `${raw.minute}'` : undefined,
+    league: raw.competition.name,
+    sport: 'football',
+    startTime: formatStartTime(kickoff),
+  };
+};
+
+const fetchMatches = async (params: Record<string, string>): Promise<Match[]> => {
+  const query = new URLSearchParams(params).toString();
+  const url = `${API_BASE}/matches?${query}`;
+  const res = await fetch(url);
+
+  if (!res.ok) {
+    throw new Error(`football-data.org error: ${res.status}`);
+  }
+
+  const data: MatchesResponse = await res.json();
+  return data.matches.map(mapMatch).filter((m): m is Match => m !== null);
+};
+
+const toISO = (date: Date) => date.toISOString().slice(0, 10);
+
+const fetchFootballMatches = async (): Promise<Match[]> => {
+  const now = new Date();
+  const from = new Date(now);
+  from.setDate(from.getDate() - 2);
+  const to = new Date(now);
+  to.setDate(to.getDate() + 7);
+
+  return fetchMatches({ dateFrom: toISO(from), dateTo: toISO(to) });
+};
+
+const fetchBasketballMatches = async (): Promise<Match[]> => {
+  return [];
 };
 
 export const fetchTodaysMatches = async (): Promise<Match[]> => {
-  return [
-    {
-      id: '3',
-      homeTeam: 'Real Madrid',
-      awayTeam: 'Atletico',
-      homeScore: 3,
-      awayScore: 0,
-      status: 'finished',
-      league: 'La Liga',
-      sport: 'football',
-      startTime: '18:00',
-    },
-    {
-      id: '4',
-      homeTeam: 'Chelsea',
-      awayTeam: 'Liverpool',
-      homeScore: 0,
-      awayScore: 0,
-      status: 'upcoming',
-      league: 'Premier League',
-      sport: 'football',
-      startTime: '22:45',
-    },
-    {
-      id: '5',
-      homeTeam: 'Warriors',
-      awayTeam: 'Nets',
-      homeScore: 0,
-      awayScore: 0,
-      status: 'upcoming',
-      league: 'NBA',
-      sport: 'basketball',
-      startTime: '23:00',
-    },
-  ];
+  const [football, basketball] = await Promise.all([
+    fetchFootballMatches(),
+    fetchBasketballMatches(),
+  ]);
+
+  return [...football, ...basketball];
 };
+
+export const fetchLiveMatches = async (): Promise<Match[]> => {
+  const all = await fetchTodaysMatches();
+  return all.filter(m => m.status === 'live');
+};
+
+// STANDINGS
+
+export interface StandingEntry {
+  position: number;
+  team: string;
+  played: number;
+  won: number;
+  drawn: number;
+  lost: number;
+  goalsFor: number;
+  goalsAgainst: number;
+  points: number;
+}
+
+interface RawStandingRow {
+  position: number;
+  team: { name: string; shortName: string | null };
+  playedGames: number;
+  won: number;
+  draw: number;
+  lost: number;
+  goalsFor: number;
+  goalsAgainst: number;
+  points: number;
+}
+
+interface RawStandingsGroup {
+  type: 'TOTAL' | 'HOME' | 'AWAY';
+  table: RawStandingRow[];
+}
+
+interface StandingsResponse {
+  standings: RawStandingsGroup[];
+}
+
+export const fetchStandings = async (competitionCode: string): Promise<StandingEntry[]> => {
+  const url = `${API_BASE}/competitions/${competitionCode}/standings`;
+  const res = await fetch(url);
+
+  if (!res.ok) {
+    throw new Error(`football-data.org standings error: ${res.status}`);
+  }
+
+  const data: StandingsResponse = await res.json();
+  const total = data.standings.find(s => s.type === 'TOTAL');
+  if (!total) return[];
+
+  return total.table.map(row =>({
+    position: row.position,
+    team: row.team.shortName ?? row.team.name,
+    played: row.playedGames,
+    won: row.won,
+    drawn: row.draw,
+    lost: row.lost,
+    goalsFor: row.goalsFor,
+    goalsAgainst: row.goalsAgainst,
+    points: row.points,
+  }));
+}

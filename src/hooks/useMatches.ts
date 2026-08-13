@@ -48,6 +48,5 @@ export const useFilteredMatches = (filter: SportFilter) => {
   const filtered = filter === 'all'
     ? matches
     : matches.filter(m => m.sport === filter);
-
   return { matches: filtered, isLoading, isError };
 };
