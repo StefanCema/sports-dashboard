@@ -50,7 +50,10 @@ export const StatsPage = () => {
 
       {isError && (
         <div className="flex items-center justify-center h-64">
-          <p className="text-gray-400 text-sm">Failed to load top scorers.</p>
+          <p className="text-gray-400 text-sm">
+            Failed to load top scorers (sezona mozda jos nije pocela za ovu
+            ligu).
+          </p>
         </div>
       )}
 

@@ -86,7 +86,12 @@ const fetchMatches = async (
 ): Promise<Match[]> => {
   const query = new URLSearchParams(params).toString();
   const url = `${API_BASE}/matches?${query}`;
+
+  if (import.meta.env.DEV) console.log("[api.ts] fetch ->", url);
+
   const res = await fetch(url);
+
+  if (import.meta.env.DEV) console.log("[api.ts] response status:", res.status);
 
   if (!res.ok) {
     throw new Error(`football-data.org error: ${res.status}`);
@@ -126,7 +131,34 @@ export const fetchLiveMatches = async (): Promise<Match[]> => {
   return all.filter((m) => m.status === "live");
 };
 
-// STANDINGS
+export const fetchLiveOnly = async (): Promise<Match[]> => {
+  const today = toISO(new Date());
+  return fetchMatches({ dateFrom: today, dateTo: today, status: "LIVE" });
+};
+
+export const fetchRecentResults = async (): Promise<Match[]> => {
+  const now = new Date();
+  const from = new Date(now);
+  from.setDate(from.getDate() - 7);
+
+  return fetchMatches({
+    dateFrom: toISO(from),
+    dateTo: toISO(now),
+    status: "FINISHED",
+  });
+};
+
+export const fetchUpcomingOnly = async (): Promise<Match[]> => {
+  const now = new Date();
+  const to = new Date(now);
+  to.setDate(to.getDate() + 9);
+
+  return fetchMatches({
+    dateFrom: toISO(now),
+    dateTo: toISO(to),
+    status: "SCHEDULED",
+  });
+};
 
 export interface StandingEntry {
   position: number;
@@ -165,10 +197,21 @@ export const fetchStandings = async (
   competitionCode: string,
 ): Promise<StandingEntry[]> => {
   const url = `${API_BASE}/competitions/${competitionCode}/standings`;
+
+  if (import.meta.env.DEV) console.log("[api.ts] fetch ->", url);
+
   const res = await fetch(url);
 
+  if (import.meta.env.DEV)
+    console.log("[api.ts] standings status:", res.status);
+
   if (!res.ok) {
-    throw new Error(`football-data.org standings error: ${res.status}`);
+    const body = await res.text();
+    if (import.meta.env.DEV)
+      console.log("[api.ts] standings error body:", body);
+    throw new Error(
+      `football-data.org standings error: ${res.status} — ${body}`,
+    );
   }
 
   const data: StandingsResponse = await res.json();
@@ -188,8 +231,7 @@ export const fetchStandings = async (
   }));
 };
 
-// ---- Top scorers ----
-
+// ---- Top strelci (scorers) ----
 export interface TopScorer {
   playerId: number;
   playerName: string;

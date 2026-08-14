@@ -16,6 +16,12 @@ const TABS: { label: string; value: NavTabType }[] = [
   { label: "Favorites", value: "/favorites" },
 ];
 
+const MATCHES_SUBPATHS = ["/", "/results", "/upcoming"];
+const isTabActive = (tabValue: NavTabType, pathname: string): boolean => {
+  if (tabValue === "/") return MATCHES_SUBPATHS.includes(pathname);
+  return pathname === tabValue;
+};
+
 export const Topbar = ({ isDark, onToggleDark }: TopbarProps) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
@@ -29,9 +35,7 @@ export const Topbar = ({ isDark, onToggleDark }: TopbarProps) => {
 
   const handleSearchChange = (value: string) => {
     setQuery(value);
-    // Pretraga filtrira listu meceva — ako korisnik kuca dok je na
-    // Standings/Stats/Favorites, prebaci ga na Matches da odmah vidi rezultate.
-    if (value && pathname !== "/") {
+    if (value && !MATCHES_SUBPATHS.includes(pathname)) {
       navigate("/");
     }
   };
@@ -52,7 +56,7 @@ export const Topbar = ({ isDark, onToggleDark }: TopbarProps) => {
             <NavTab
               key={tab.value}
               label={tab.label}
-              active={pathname === tab.value}
+              active={isTabActive(tab.value, pathname)}
               onClick={() => handleTab(tab.value)}
             />
           ))}
@@ -143,7 +147,7 @@ export const Topbar = ({ isDark, onToggleDark }: TopbarProps) => {
             <NavTab
               key={tab.value}
               label={tab.label}
-              active={pathname === tab.value}
+              active={isTabActive(tab.value, pathname)}
               onClick={() => handleTab(tab.value)}
             />
           ))}

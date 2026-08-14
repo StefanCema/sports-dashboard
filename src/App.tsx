@@ -2,13 +2,16 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Topbar } from "./components/layout/Topbar";
 import { Sidebar } from "./components/layout/Sidebar";
-import { MatchList } from "./components/matches/MatchList";
+import { MatchesTabs } from "./components/matches/MatchesTabs";
+import { LiveMatchesPage } from "./components/matches/LiveMatchesPage";
+import { ResultsPage } from "./components/matches/ResultsPage";
+import { UpcomingPage } from "./components/matches/UpcomingPage";
 import { MatchDetailPage } from "./pages/MatchDetailPage";
 import { FavoritesPage } from "./pages/FavoritesPage";
 import { StandingsPage } from "./pages/StandingsPage";
+import { StatsPage } from "./pages/StatsPage";
 import { useDarkMode } from "./hooks/useDarkMode";
 import { FavoritesProvider } from "./contexts/FavoritesContext";
-import { StatsPage } from "./pages/StatsPage";
 import { SearchProvider } from "./contexts/SearchContext";
 
 const queryClient = new QueryClient({
@@ -47,10 +50,14 @@ const App = () => {
                   path="/"
                   element={
                     <MainLayout>
-                      <MatchList />
+                      <MatchesTabs />
                     </MainLayout>
                   }
-                />
+                >
+                  <Route index element={<LiveMatchesPage />} />
+                  <Route path="results" element={<ResultsPage />} />
+                  <Route path="upcoming" element={<UpcomingPage />} />
+                </Route>
                 <Route
                   path="/standings"
                   element={
