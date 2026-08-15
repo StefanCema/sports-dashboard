@@ -13,8 +13,8 @@ export const useLiveMatches = () => {
   return useQuery({
     queryKey: ["liveMatches"],
     queryFn: fetchLiveMatches,
-    refetchInterval: 30000,
-    staleTime: 20000,
+    staleTime: 120 * 1000,
+    refetchOnWindowFocus: true,
   });
 };
 
@@ -22,11 +22,12 @@ export const useTodaysMatches = () => {
   return useQuery({
     queryKey: ["todaysMatches"],
     queryFn: fetchTodaysMatches,
-    refetchInterval: 60000,
-    staleTime: 30000,
+    staleTime: 2 * 120 * 1000,
+    refetchOnWindowFocus: true,
   });
 };
 
+// Jedan hook koji merge-uje live + today — koristi se svuda
 export const useAllMatches = () => {
   const live = useLiveMatches();
   const todays = useTodaysMatches();
@@ -56,12 +57,14 @@ export const useFilteredMatches = (filter: SportFilter) => {
   return { matches: filtered, isLoading, isError };
 };
 
+// ---- Live / Results / Upcoming pod-tabovi ----
+
 export const useLiveOnlyMatches = () => {
   return useQuery({
     queryKey: ["matches", "live-tab"],
     queryFn: fetchLiveOnly,
-    refetchInterval: 30000,
-    staleTime: 15000,
+    refetchInterval: 120000,
+    staleTime: 60000,
   });
 };
 
@@ -69,7 +72,7 @@ export const useResultsMatches = () => {
   return useQuery({
     queryKey: ["matches", "results-tab"],
     queryFn: fetchRecentResults,
-    staleTime: 5 * 60 * 1000,
+    staleTime: 10 * 60 * 1000,
   });
 };
 
@@ -77,6 +80,6 @@ export const useUpcomingOnlyMatches = () => {
   return useQuery({
     queryKey: ["matches", "upcoming-tab"],
     queryFn: fetchUpcomingOnly,
-    staleTime: 5 * 60 * 1000,
+    staleTime: 10 * 60 * 1000,
   });
 };

@@ -2,6 +2,14 @@ import type { Match } from "../types";
 
 const API_BASE = "/api/football";
 
+if (import.meta.env.DEV) {
+  const token = import.meta.env.VITE_FOOTBALL_DATA_TOKEN as string | undefined;
+  console.log(
+    "[api.ts] VITE_FOOTBALL_DATA_TOKEN:",
+    token ? `ucitan (${token.slice(0, 4)}...)` : "NIJE UCITAN",
+  );
+}
+
 type RawStatus =
   | "SCHEDULED"
   | "TIMED"
@@ -78,6 +86,7 @@ const mapMatch = (raw: RawMatch): Match | null => {
     league: raw.competition.name,
     sport: "football",
     startTime: formatStartTime(kickoff),
+    kickoffISO: kickoff.toISOString(),
   };
 };
 
@@ -131,11 +140,13 @@ export const fetchLiveMatches = async (): Promise<Match[]> => {
   return all.filter((m) => m.status === "live");
 };
 
+// Live tab
 export const fetchLiveOnly = async (): Promise<Match[]> => {
   const today = toISO(new Date());
   return fetchMatches({ dateFrom: today, dateTo: today, status: "LIVE" });
 };
 
+// Results tab
 export const fetchRecentResults = async (): Promise<Match[]> => {
   const now = new Date();
   const from = new Date(now);
@@ -148,6 +159,7 @@ export const fetchRecentResults = async (): Promise<Match[]> => {
   });
 };
 
+// Upcoming tab.
 export const fetchUpcomingOnly = async (): Promise<Match[]> => {
   const now = new Date();
   const to = new Date(now);
@@ -159,6 +171,8 @@ export const fetchUpcomingOnly = async (): Promise<Match[]> => {
     status: "SCHEDULED",
   });
 };
+
+// ---- Standings (tabela lige) ----
 
 export interface StandingEntry {
   position: number;
@@ -282,4 +296,146 @@ export const fetchTopScorers = async (
     assists: s.assists,
     playedMatches: s.playedMatches,
   }));
+};
+
+// ---- Pojedinacan mec po ID-ju (osnovni podaci + poluvreme/sudija/stadion) ----
+export interface MatchDetail {
+  venue: string | null;
+  referee: string | null;
+  matchday: number | null;
+  halfTimeScore: { home: number; away: number } | null;
+}
+
+export interface MatchFull {
+  match: Match;
+  detail: MatchDetail;
+}
+
+interface RawMatchFull extends Omit<RawMatch, "score"> {
+  venue: string | null;
+  matchday: number | null;
+  referees: { name: string }[];
+  score: {
+    fullTime: { home: number | null; away: number | null };
+    halfTime: { home: number | null; away: number | null };
+  };
+}
+
+export const fetchMatchFull = async (matchId: string): Promise<MatchFull> => {
+  const url = `${API_BASE}/matches/${matchId}`;
+
+  if (import.meta.env.DEV) console.log("[api.ts] fetch ->", url);
+
+  const res = await fetch(url);
+
+  if (import.meta.env.DEV) console.log("[api.ts] match status:", res.status);
+
+  if (!res.ok) {
+    const body = await res.text();
+    if (import.meta.env.DEV) console.log("[api.ts] match error body:", body);
+    throw new Error(`football-data.org match error: ${res.status} — ${body}`);
+  }
+
+  const raw: RawMatchFull = await res.json();
+  const mapped = mapMatch(raw);
+
+  if (!mapped) {
+    throw new Error(
+      "Ovaj mec trenutno nema podrzan status (npr. odlozen/otkazan).",
+    );
+  }
+
+  const ht = raw.score.halfTime;
+
+  return {
+    match: mapped,
+    detail: {
+      venue: raw.venue,
+      referee: raw.referees[0]?.name ?? null,
+      matchday: raw.matchday,
+      halfTimeScore:
+        ht.home !== null && ht.away !== null
+          ? { home: ht.home, away: ht.away }
+          : null,
+    },
+  };
+};
+
+// ---- Head-to-head
+
+export interface HeadToHeadMeeting {
+  id: string;
+  date: string; // ISO
+  homeTeam: string;
+  awayTeam: string;
+  homeScore: number | null;
+  awayScore: number | null;
+  competition: string;
+}
+
+export interface HeadToHead {
+  numberOfMatches: number;
+  homeWins: number;
+  draws: number;
+  awayWins: number;
+  totalGoals: number;
+  recentMeetings: HeadToHeadMeeting[];
+}
+
+interface RawH2HMatch {
+  id: number;
+  utcDate: string;
+  homeTeam: { name: string; shortName: string | null };
+  awayTeam: { name: string; shortName: string | null };
+  score: { fullTime: { home: number | null; away: number | null } };
+  competition: { name: string };
+}
+
+interface RawH2HResponse {
+  head2head: {
+    numberOfMatches: number;
+    totalGoals: number;
+    homeTeam: { wins: number; draws: number; losses: number };
+    awayTeam: { wins: number; draws: number; losses: number };
+  };
+  matches: RawH2HMatch[];
+}
+
+export const fetchHeadToHead = async (matchId: string): Promise<HeadToHead> => {
+  const url = `${API_BASE}/matches/${matchId}/head2head?limit=5`;
+
+  if (import.meta.env.DEV) console.log("[api.ts] fetch ->", url);
+
+  const res = await fetch(url);
+
+  if (import.meta.env.DEV)
+    console.log("[api.ts] head2head status:", res.status);
+
+  if (!res.ok) {
+    const body = await res.text();
+    if (import.meta.env.DEV)
+      console.log("[api.ts] head2head error body:", body);
+    throw new Error(
+      `football-data.org head2head error: ${res.status} — ${body}`,
+    );
+  }
+
+  const data: RawH2HResponse = await res.json();
+
+  return {
+    numberOfMatches: data.head2head.numberOfMatches,
+    homeWins: data.head2head.homeTeam.wins,
+    draws: data.head2head.homeTeam.draws,
+    awayWins: data.head2head.awayTeam.wins,
+    totalGoals: data.head2head.totalGoals,
+    recentMeetings: (data.matches ?? []).map((m) => ({
+      id: String(m.id),
+      date: m.utcDate,
+      homeTeam: m.homeTeam.shortName ?? m.homeTeam.name,
+      awayTeam: m.awayTeam.shortName ?? m.awayTeam.name,
+      homeScore: m.score.fullTime.home,
+      awayScore: m.score.fullTime.away,
+      competition: m.competition.name,
+    })),
+  };
 };

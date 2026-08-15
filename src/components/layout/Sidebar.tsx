@@ -1,15 +1,28 @@
-import { useAllMatches } from '../../hooks/useMatches';
+import { useAllMatches } from "../../hooks/useMatches";
+
+const isToday = (isoDate: string): boolean => {
+  const d = new Date(isoDate);
+  const now = new Date();
+  return (
+    d.getFullYear() === now.getFullYear() &&
+    d.getMonth() === now.getMonth() &&
+    d.getDate() === now.getDate()
+  );
+};
 
 export const Sidebar = () => {
   const { matches, isLoading } = useAllMatches();
+  const todaysMatches = matches?.filter((m) => isToday(m.kickoffISO)) ?? [];
+  const liveCount = todaysMatches.filter((m) => m.status === "live").length;
 
-  const liveCount = matches?.filter(m => m.status === 'live').length ?? 0;
-  const upcomingMatches = matches?.filter(m => m.status === 'upcoming').slice(0, 4);
+  const upcomingMatches =
+    matches?.filter((m) => m.status === "upcoming").slice(0, 4) ?? [];
+
   if (isLoading) {
     return (
       <aside className="w-72 shrink-0 space-y-4">
         {/* Loading Quick Stats */}
-        <div className="bg-white border border-gray-100 dark:border-gray-700 rounded-xl p-4 animate-pulse">
+        <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl p-4 animate-pulse">
           <div className="h-4 w-36 bg-gray-200 dark:bg-gray-700 rounded mb-4" />
           <div className="grid grid-cols-2 gap-3">
             <div className="h-20 bg-gray-100 dark:bg-gray-700 rounded-lg" />
@@ -18,10 +31,13 @@ export const Sidebar = () => {
         </div>
 
         {/* Loading Upcoming */}
-        <div className="bg-white border border-gray-100 dark:border-gray-700 rounded-xl p-4 animate-pulse">
+        <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl p-4 animate-pulse">
           <div className="h-4 w-28 bg-gray-200 dark:bg-gray-700 rounded mb-4" />
           {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="h-12 bg-gray-100 dark:bg-gray-700 rounded mb-3 last:mb-0" />
+            <div
+              key={i}
+              className="h-12 bg-gray-100 dark:bg-gray-700 rounded mb-3 last:mb-0"
+            />
           ))}
         </div>
       </aside>
@@ -29,26 +45,30 @@ export const Sidebar = () => {
   }
 
   return (
-   <aside className="w-72 shrink-0">
+    <aside className="w-72 shrink-0">
       {/* Quick Stats */}
-      <div className="bg-white border border-gray-100 rounded-xl p-4 mb-4">
+      <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl p-4 mb-4">
         <p className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-3">
           Today's Overview
         </p>
         <div className="grid grid-cols-2 gap-3">
-          <div className="bg-gray-50 rounded-lg p-3">
-            <p className="text-2xl font-semibold text-gray-800">{liveCount}</p>
+          <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3">
+            <p className="text-2xl font-semibold text-gray-800 dark:text-gray-100">
+              {liveCount}
+            </p>
             <p className="text-xs text-gray-400 mt-0.5">Live matches</p>
           </div>
-          <div className="bg-gray-50 rounded-lg p-3">
-            <p className="text-2xl font-semibold text-gray-800">{matches.length}</p>
+          <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3">
+            <p className="text-2xl font-semibold text-gray-800 dark:text-gray-100">
+              {todaysMatches.length}
+            </p>
             <p className="text-xs text-gray-400 mt-0.5">Total today</p>
           </div>
         </div>
       </div>
 
       {/* Upcoming */}
-      <div className="bg-white border border-gray-100 rounded-xl p-4">
+      <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl p-4">
         <p className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-3">
           Upcoming
         </p>
@@ -56,14 +76,16 @@ export const Sidebar = () => {
           <p className="text-sm text-gray-400">No upcoming matches.</p>
         )}
         {upcomingMatches.map((match, i) => (
-         <div
-           key={match.id}
+          <div
+            key={match.id}
             className={`flex items-center justify-between py-2.5 ${
-              i !== upcomingMatches.length - 1 ? 'border-b border-gray-100' : ''
+              i !== upcomingMatches.length - 1
+                ? "border-b border-gray-100 dark:border-gray-700"
+                : ""
             }`}
-         >
-           <div>
-              <p className="text-sm text-gray-700">
+          >
+            <div>
+              <p className="text-sm text-gray-700 dark:text-gray-200">
                 {match.homeTeam} vs {match.awayTeam}
               </p>
               <p className="text-xs text-gray-400 mt-0.5">{match.league}</p>
@@ -76,4 +98,4 @@ export const Sidebar = () => {
       </div>
     </aside>
   );
- };
+};

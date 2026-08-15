@@ -4,11 +4,12 @@ export interface Match {
   awayTeam: string;
   homeScore: number;
   awayScore: number;
-  status: 'live' | 'finished' | 'upcoming';
+  status: "live" | "finished" | "upcoming";
   minute?: string;
   league: string;
-  sport: 'football' | 'basketball' | 'tennis' | 'baseball';
+  sport: "football" | "basketball" | "tennis" | "baseball";
   startTime: string;
+  kickoffISO: string;
   stats?: MatchStats;
 }
 
@@ -20,7 +21,12 @@ export interface MatchStats {
   rebounds?: string;
 }
 
-export type SportFilter = 'all' | 'football' | 'basketball' | 'tennis' | 'baseball';
+export type SportFilter =
+  | "all"
+  | "football"
+  | "basketball"
+  | "tennis"
+  | "baseball";
 
 // Vrednosti su sada URL path-ovi
-export type NavTab = '/' | '/standings' | '/stats' | '/favorites';
+export type NavTab = "/" | "/standings" | "/stats" | "/favorites";
