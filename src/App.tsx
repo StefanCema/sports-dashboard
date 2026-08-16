@@ -18,10 +18,7 @@ import { ApiError } from "./services/api";
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      // NIKAD ne ponavljaj automatski na 429 (prekoracen limit) ili 404 (ne
-      // postoji) — ponovni pokusaj ne resava ni jedno ni drugo, samo trosi
-      // jos vise od uskog budzeta od 10 poziva/minut i produzava blokadu.
-      // Za ostale greske (mrezne, 5xx) i dalje ima smisla probati jos jednom.
+      // NIKAD ne ponavljaj automatski na 429  ili 404 samo trosi resurse ne resava problem
       retry: (failureCount, error) => {
         if (
           error instanceof ApiError &&
@@ -36,7 +33,7 @@ const queryClient = new QueryClient({
   },
 });
 
-// Layout sa sidebarom — koristi se za sve glavne tabove
+// Layout sa sidebarom
 const MainLayout = ({ children }: { children: React.ReactNode }) => (
   <main className="max-w-6xl mx-auto px-4 md:px-6 py-6 flex flex-col md:flex-row gap-6">
     <div className="flex-1">{children}</div>

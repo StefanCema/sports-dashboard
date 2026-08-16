@@ -149,8 +149,6 @@ const fetchFootballMatches = async (): Promise<Match[]> => {
   return fetchMatches({ dateFrom: toISO(from), dateTo: toISO(to) });
 };
 
-// Nema pouzdanog besplatnog izvora za kosarku sa CORS podrskom — namerno
-// prazno umesto da vracamo mock/nepouzdane podatke.
 const fetchBasketballMatches = async (): Promise<Match[]> => {
   return [];
 };
@@ -201,7 +199,7 @@ export const fetchUpcomingOnly = async (): Promise<Match[]> => {
   });
 };
 
-// ---- Standings (tabela lige) ----
+// ---- Standings
 
 export interface StandingEntry {
   position: number;
@@ -260,7 +258,7 @@ export const fetchStandings = async (
   }));
 };
 
-// ---- Top strelci (scorers) ----
+// ---- Top strelci
 export interface TopScorer {
   playerId: number;
   playerName: string;
@@ -303,9 +301,7 @@ export const fetchTopScorers = async (
   }));
 };
 
-// ---- Pojedinacan mec po ID-ju (osnovni podaci + poluvreme/sudija/stadion) ----
-// JEDAN poziv na /matches/{id} — radi bez obzira sa koje je stranice/taba
-// korisnik dosao, ne oslanja se na vec ucitanu, vremenski ogranicenu listu.
+// ---- Pojedinacan mec po ID-ju
 
 export interface MatchDetail {
   venue: string | null;
@@ -355,9 +351,7 @@ export const fetchMatchFull = async (matchId: string): Promise<MatchFull> => {
   };
 };
 
-// ---- Head-to-head (istorijat medjusobnih susreta) ----
-// Radi za SVA tri statusa meca — kod predstojecih daje kontekst pre pocetka,
-// kod zavrsenih/uzivo dodaje istorijsku pozadinu uz trenutni rezultat.
+//  Head-to-head
 
 export interface HeadToHeadMeeting {
   id: string;

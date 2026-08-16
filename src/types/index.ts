@@ -21,5 +21,4 @@ export type SportFilter =
   | "tennis"
   | "baseball";
 
-// Vrednosti su sada URL path-ovi
 export type NavTab = "/" | "/standings" | "/stats" | "/favorites";

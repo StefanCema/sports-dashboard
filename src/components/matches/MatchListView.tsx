@@ -37,16 +37,33 @@ export const MatchListView = ({
   );
   const { query } = useSearch();
 
+  const availableSports = useMemo(() => {
+    const seen: SportFilter[] = [];
+    for (const m of matches) {
+      if (!seen.includes(m.sport)) seen.push(m.sport);
+    }
+    return seen;
+  }, [matches]);
+
+  const sportOptions = FILTERS.filter(
+    (f) => f.value === "all" || availableSports.includes(f.value),
+  );
+
+  const effectiveActiveFilter: SportFilter =
+    activeFilter === "all" || availableSports.includes(activeFilter)
+      ? activeFilter
+      : "all";
+
   const sportFiltered = useMemo(
     () =>
-      activeFilter === "all"
+      effectiveActiveFilter === "all"
         ? matches
-        : matches.filter((m) => m.sport === activeFilter),
-    [matches, activeFilter],
+        : matches.filter((m) => m.sport === effectiveActiveFilter),
+    [matches, effectiveActiveFilter],
   );
 
   const activeSportLabel =
-    FILTERS.find((f) => f.value === activeFilter)?.label ?? "Sport";
+    FILTERS.find((f) => f.value === effectiveActiveFilter)?.label ?? "Sport";
 
   const availableLeagues = useMemo(() => {
     const seen: string[] = [];
@@ -126,30 +143,33 @@ export const MatchListView = ({
 
       {/* Sport + League filteri*/}
       <div className="flex items-center gap-2 flex-wrap mb-5">
-        <Dropdown label={`Sport: ${activeSportLabel}`}>
-          {(close) => (
-            <>
-              {FILTERS.map((f) => (
-                <button
-                  key={f.value}
-                  onClick={() => {
-                    setActiveFilter(f.value);
-                    close();
-                  }}
-                  className={`w-full text-left px-3 py-1.5 text-sm transition-colors
-                    hover:bg-gray-50 dark:hover:bg-gray-700
-                    ${
-                      activeFilter === f.value
-                        ? "text-emerald-600 dark:text-emerald-400 font-medium"
-                        : "text-gray-600 dark:text-gray-300"
-                    }`}
-                >
-                  {f.label}
-                </button>
-              ))}
-            </>
-          )}
-        </Dropdown>
+        {/* Sport filter — samo ako ima vise od jednog sporta sa podacima */}
+        {availableSports.length > 1 && (
+          <Dropdown label={`Sport: ${activeSportLabel}`}>
+            {(close) => (
+              <>
+                {sportOptions.map((f) => (
+                  <button
+                    key={f.value}
+                    onClick={() => {
+                      setActiveFilter(f.value);
+                      close();
+                    }}
+                    className={`w-full text-left px-3 py-1.5 text-sm transition-colors
+                      hover:bg-gray-50 dark:hover:bg-gray-700
+                      ${
+                        effectiveActiveFilter === f.value
+                          ? "text-emerald-600 dark:text-emerald-400 font-medium"
+                          : "text-gray-600 dark:text-gray-300"
+                      }`}
+                  >
+                    {f.label}
+                  </button>
+                ))}
+              </>
+            )}
+          </Dropdown>
+        )}
 
         {/* League filter */}
         {availableLeagues.length > 1 && (
