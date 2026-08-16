@@ -6,7 +6,6 @@ import {
   fetchRecentResults,
   fetchUpcomingOnly,
 } from "../services/api";
-import type { SportFilter } from "../types";
 import { useMemo } from "react";
 
 export const useLiveMatches = () => {
@@ -46,15 +45,6 @@ export const useAllMatches = () => {
     isLoading: live.isLoading || todays.isLoading,
     isError: live.isError || todays.isError,
   };
-};
-
-export const useFilteredMatches = (filter: SportFilter) => {
-  const { matches, isLoading, isError } = useAllMatches();
-
-  const filtered =
-    filter === "all" ? matches : matches.filter((m) => m.sport === filter);
-
-  return { matches: filtered, isLoading, isError };
 };
 
 // ---- Live / Results / Upcoming pod-tabovi ----

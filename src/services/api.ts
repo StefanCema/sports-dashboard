@@ -1,9 +1,5 @@
 import type { Match } from "../types";
 
-// Custom greska koja nosi HTTP status kod — koristi se da React Query zna
-// KADA ima smisla automatski ponoviti poziv, a kada ne (npr. 429 "prekoracen
-// limit" ili 404 "ne postoji" NIKAD ne treba automatski ponavljati — ponovni
-// pokusaj samo produzava/pogorsava problem, ne resava ga).
 export class ApiError extends Error {
   status: number;
   constructor(status: number, message: string) {
@@ -12,34 +8,6 @@ export class ApiError extends Error {
     this.status = status;
   }
 }
-
-// football-data.org — besplatan, pouzdan fudbalski API sa PRAVIM live statusom
-// (SCHEDULED / IN_PLAY / PAUSED / FINISHED), ne procenom kao kod prethodnog
-// pokusaja. Free tier pokriva ~12 najvecih takmicenja (Premier League, La Liga,
-// Serie A, Bundesliga, Ligue 1, Champions League...) i limit je 10 poziva/minut.
-//
-// SAMO FUDBAL na free tier-u — nema besplatne kosarke koja je istovremeno
-// pouzdana i CORS-friendly, pa smo tu funkciju za sad ostavili praznu
-// (vidi fetchBasketballMatches ispod) umesto da rizikujemo nestabilan izvor.
-//
-// VAZNO — CORS: football-data.org free tier vraca fiksan
-// "Access-Control-Allow-Origin: http://localhost" header (bez porta), pa
-// browser blokira direktan poziv sa Vite dev servera (localhost:5173).
-// Zato ovde NE zovemo api.football-data.org direktno, vec relativnu putanju
-// '/api/football/...' koju Vite-ov dev proxy (vidi vite.config.ts) prosledjuje
-// server-side, gde CORS ne vazi. Token se dodaje u proxy-ju, ne ovde.
-//
-// SETUP (obavezno pre pokretanja):
-// 1. Registruj se besplatno: https://www.football-data.org/client/register
-// 2. Kopiraj svoj X-Auth-Token sa naloga
-// 3. U root-u projekta (pored package.json) napravi .env fajl sa:
-//      VITE_FOOTBALL_DATA_TOKEN=tvoj_token_ovde
-// 4. Dodaj proxy podesavanje u vite.config.ts (vidi primer u README/uputstvu)
-// 5. Restartuj `npm run dev` (Vite env i config promene traze restart)
-//
-// NAPOMENA O PRODUKCIJI: ovaj proxy radi samo lokalno (npm run dev). Kad app
-// deploy-ujes (Vercel/Netlify), treba ti ekvivalentna serverless funkcija koja
-// radi istu stvar — javi kad stignes do tog koraka, sredicemo i to.
 
 const API_BASE = "/api/football";
 
@@ -50,6 +18,28 @@ if (import.meta.env.DEV) {
     token ? `ucitan (${token.slice(0, 4)}...)` : "NIJE UCITAN",
   );
 }
+
+const apiFetch = async <T>(path: string): Promise<T> => {
+  const url = `${API_BASE}${path}`;
+
+  if (import.meta.env.DEV) console.log("[api.ts] fetch ->", url);
+
+  const res = await fetch(url);
+
+  if (import.meta.env.DEV)
+    console.log("[api.ts] response status:", res.status, url);
+
+  if (!res.ok) {
+    const body = await res.text();
+    if (import.meta.env.DEV) console.log("[api.ts] error body:", body);
+    throw new ApiError(
+      res.status,
+      `football-data.org error: ${res.status} — ${body}`,
+    );
+  }
+
+  return res.json() as Promise<T>;
+};
 
 type RawStatus =
   | "SCHEDULED"
@@ -62,14 +52,20 @@ type RawStatus =
   | "CANCELLED"
   | "AWARDED";
 
+interface RawTeam {
+  name: string;
+  shortName: string | null;
+  crest: string | null;
+}
+
 interface RawMatch {
   id: number;
   utcDate: string;
   status: RawStatus;
   minute?: number | null;
   competition: { name: string };
-  homeTeam: { name: string; shortName: string | null };
-  awayTeam: { name: string; shortName: string | null };
+  homeTeam: RawTeam;
+  awayTeam: RawTeam;
   score: {
     fullTime: { home: number | null; away: number | null };
   };
@@ -128,6 +124,8 @@ const mapMatch = (raw: RawMatch): Match | null => {
     sport: "football",
     startTime: formatStartTime(kickoff),
     kickoffISO: kickoff.toISOString(),
+    homeCrest: raw.homeTeam.crest,
+    awayCrest: raw.awayTeam.crest,
   };
 };
 
@@ -135,19 +133,7 @@ const fetchMatches = async (
   params: Record<string, string>,
 ): Promise<Match[]> => {
   const query = new URLSearchParams(params).toString();
-  const url = `${API_BASE}/matches?${query}`;
-
-  if (import.meta.env.DEV) console.log("[api.ts] fetch ->", url);
-
-  const res = await fetch(url);
-
-  if (import.meta.env.DEV) console.log("[api.ts] response status:", res.status);
-
-  if (!res.ok) {
-    throw new ApiError(res.status, `football-data.org error: ${res.status}`);
-  }
-
-  const data: MatchesResponse = await res.json();
+  const data = await apiFetch<MatchesResponse>(`/matches?${query}`);
   return data.matches.map(mapMatch).filter((m): m is Match => m !== null);
 };
 
@@ -163,6 +149,8 @@ const fetchFootballMatches = async (): Promise<Match[]> => {
   return fetchMatches({ dateFrom: toISO(from), dateTo: toISO(to) });
 };
 
+// Nema pouzdanog besplatnog izvora za kosarku sa CORS podrskom — namerno
+// prazno umesto da vracamo mock/nepouzdane podatke.
 const fetchBasketballMatches = async (): Promise<Match[]> => {
   return [];
 };
@@ -218,6 +206,7 @@ export const fetchUpcomingOnly = async (): Promise<Match[]> => {
 export interface StandingEntry {
   position: number;
   team: string;
+  crest: string | null;
   played: number;
   won: number;
   drawn: number;
@@ -229,7 +218,7 @@ export interface StandingEntry {
 
 interface RawStandingRow {
   position: number;
-  team: { name: string; shortName: string | null };
+  team: RawTeam;
   playedGames: number;
   won: number;
   draw: number;
@@ -251,32 +240,16 @@ interface StandingsResponse {
 export const fetchStandings = async (
   competitionCode: string,
 ): Promise<StandingEntry[]> => {
-  const url = `${API_BASE}/competitions/${competitionCode}/standings`;
-
-  if (import.meta.env.DEV) console.log("[api.ts] fetch ->", url);
-
-  const res = await fetch(url);
-
-  if (import.meta.env.DEV)
-    console.log("[api.ts] standings status:", res.status);
-
-  if (!res.ok) {
-    const body = await res.text();
-    if (import.meta.env.DEV)
-      console.log("[api.ts] standings error body:", body);
-    throw new ApiError(
-      res.status,
-      `football-data.org standings error: ${res.status} — ${body}`,
-    );
-  }
-
-  const data: StandingsResponse = await res.json();
+  const data = await apiFetch<StandingsResponse>(
+    `/competitions/${competitionCode}/standings`,
+  );
   const total = data.standings.find((s) => s.type === "TOTAL");
   if (!total) return [];
 
   return total.table.map((row) => ({
     position: row.position,
     team: row.team.shortName ?? row.team.name,
+    crest: row.team.crest,
     played: row.playedGames,
     won: row.won,
     drawn: row.draw,
@@ -292,6 +265,7 @@ export interface TopScorer {
   playerId: number;
   playerName: string;
   team: string;
+  teamCrest: string | null;
   nationality: string | null;
   goals: number;
   assists: number | null;
@@ -300,7 +274,7 @@ export interface TopScorer {
 
 interface RawScorer {
   player: { id: number; name: string; nationality: string | null };
-  team: { name: string; shortName: string | null };
+  team: RawTeam;
   playedMatches: number;
   goals: number;
   assists: number | null;
@@ -313,29 +287,15 @@ interface ScorersResponse {
 export const fetchTopScorers = async (
   competitionCode: string,
 ): Promise<TopScorer[]> => {
-  const url = `${API_BASE}/competitions/${competitionCode}/scorers?limit=10`;
-
-  if (import.meta.env.DEV) console.log("[api.ts] fetch ->", url);
-
-  const res = await fetch(url);
-
-  if (import.meta.env.DEV) console.log("[api.ts] scorers status:", res.status);
-
-  if (!res.ok) {
-    const body = await res.text();
-    if (import.meta.env.DEV) console.log("[api.ts] scorers error body:", body);
-    throw new ApiError(
-      res.status,
-      `football-data.org scorers error: ${res.status} — ${body}`,
-    );
-  }
-
-  const data: ScorersResponse = await res.json();
+  const data = await apiFetch<ScorersResponse>(
+    `/competitions/${competitionCode}/scorers?limit=10`,
+  );
 
   return data.scorers.map((s) => ({
     playerId: s.player.id,
     playerName: s.player.name,
     team: s.team.shortName ?? s.team.name,
+    teamCrest: s.team.crest,
     nationality: s.player.nationality,
     goals: s.goals,
     assists: s.assists,
@@ -343,7 +303,10 @@ export const fetchTopScorers = async (
   }));
 };
 
-// ---- Pojedinacan mec po ID-ju
+// ---- Pojedinacan mec po ID-ju (osnovni podaci + poluvreme/sudija/stadion) ----
+// JEDAN poziv na /matches/{id} — radi bez obzira sa koje je stranice/taba
+// korisnik dosao, ne oslanja se na vec ucitanu, vremenski ogranicenu listu.
+
 export interface MatchDetail {
   venue: string | null;
   referee: string | null;
@@ -367,24 +330,7 @@ interface RawMatchFull extends Omit<RawMatch, "score"> {
 }
 
 export const fetchMatchFull = async (matchId: string): Promise<MatchFull> => {
-  const url = `${API_BASE}/matches/${matchId}`;
-
-  if (import.meta.env.DEV) console.log("[api.ts] fetch ->", url);
-
-  const res = await fetch(url);
-
-  if (import.meta.env.DEV) console.log("[api.ts] match status:", res.status);
-
-  if (!res.ok) {
-    const body = await res.text();
-    if (import.meta.env.DEV) console.log("[api.ts] match error body:", body);
-    throw new ApiError(
-      res.status,
-      `football-data.org match error: ${res.status} — ${body}`,
-    );
-  }
-
-  const raw: RawMatchFull = await res.json();
+  const raw = await apiFetch<RawMatchFull>(`/matches/${matchId}`);
   const mapped = mapMatch(raw);
 
   if (!mapped) {
@@ -409,7 +355,9 @@ export const fetchMatchFull = async (matchId: string): Promise<MatchFull> => {
   };
 };
 
-// ---- Head-to-head
+// ---- Head-to-head (istorijat medjusobnih susreta) ----
+// Radi za SVA tri statusa meca — kod predstojecih daje kontekst pre pocetka,
+// kod zavrsenih/uzivo dodaje istorijsku pozadinu uz trenutni rezultat.
 
 export interface HeadToHeadMeeting {
   id: string;
@@ -450,26 +398,9 @@ interface RawH2HResponse {
 }
 
 export const fetchHeadToHead = async (matchId: string): Promise<HeadToHead> => {
-  const url = `${API_BASE}/matches/${matchId}/head2head?limit=5`;
-
-  if (import.meta.env.DEV) console.log("[api.ts] fetch ->", url);
-
-  const res = await fetch(url);
-
-  if (import.meta.env.DEV)
-    console.log("[api.ts] head2head status:", res.status);
-
-  if (!res.ok) {
-    const body = await res.text();
-    if (import.meta.env.DEV)
-      console.log("[api.ts] head2head error body:", body);
-    throw new ApiError(
-      res.status,
-      `football-data.org head2head error: ${res.status} — ${body}`,
-    );
-  }
-
-  const data: RawH2HResponse = await res.json();
+  const data = await apiFetch<RawH2HResponse>(
+    `/matches/${matchId}/head2head?limit=5`,
+  );
 
   return {
     numberOfMatches: data.head2head.numberOfMatches,

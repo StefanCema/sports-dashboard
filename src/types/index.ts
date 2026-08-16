@@ -10,15 +10,8 @@ export interface Match {
   sport: "football" | "basketball" | "tennis" | "baseball";
   startTime: string;
   kickoffISO: string;
-  stats?: MatchStats;
-}
-
-export interface MatchStats {
-  possession?: string;
-  shots?: string;
-  corners?: string;
-  fouls?: string;
-  rebounds?: string;
+  homeCrest: string | null;
+  awayCrest: string | null;
 }
 
 export type SportFilter =

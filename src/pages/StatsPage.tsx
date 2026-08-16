@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useTopScorers } from "../hooks/useTopScorers";
 import { LEAGUES } from "../constants/leagues";
+import { LeagueTabs } from "../components/ui/LeagueTabs";
+import { TeamCrest } from "../components/matches/TeamCrest";
 
 export const StatsPage = () => {
   const [activeLeague, setActiveLeague] = useState(LEAGUES[0].code);
@@ -17,30 +19,7 @@ export const StatsPage = () => {
       </h2>
       <p className="text-sm text-gray-400 mb-4">Najbolji strelci ove sezone</p>
 
-      {/* League tabs */}
-      <div className="flex gap-2 mb-5">
-        {LEAGUES.map((league) => (
-          <button
-            key={league.code}
-            onClick={() => setActiveLeague(league.code)}
-            className={`px-4 py-1.5 rounded-full text-sm font-medium border transition-all duration-150
-              ${
-                activeLeague === league.code
-                  ? "bg-emerald-100 border-emerald-400 text-emerald-800"
-                  : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400"
-              }`}
-          >
-            {league.flag ? (
-              <img
-                src={league.flag}
-                style={{ height: "50px", display: "inline-block" }}
-              />
-            ) : (
-              league.label
-            )}
-          </button>
-        ))}
-      </div>
+      <LeagueTabs active={activeLeague} onChange={setActiveLeague} />
 
       {isLoading && (
         <div className="flex items-center justify-center h-64">
@@ -89,7 +68,8 @@ export const StatsPage = () => {
                   <div className="text-xs text-gray-400">{s.nationality}</div>
                 )}
               </div>
-              <div className="col-span-3 text-gray-500 dark:text-gray-400">
+              <div className="col-span-3 text-gray-500 dark:text-gray-400 flex items-center gap-2">
+                <TeamCrest src={s.teamCrest} alt={s.team} size={18} />
                 {s.team}
               </div>
               <div className="col-span-1 text-center text-gray-500 dark:text-gray-400">

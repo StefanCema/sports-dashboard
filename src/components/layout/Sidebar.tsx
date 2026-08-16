@@ -1,4 +1,5 @@
 import { useAllMatches } from "../../hooks/useMatches";
+import { TeamCrest } from "../matches/TeamCrest";
 
 const isToday = (isoDate: string): boolean => {
   const d = new Date(isoDate);
@@ -84,11 +85,17 @@ export const Sidebar = () => {
                 : ""
             }`}
           >
-            <div>
-              <p className="text-sm text-gray-700 dark:text-gray-200">
-                {match.homeTeam} vs {match.awayTeam}
-              </p>
-              <p className="text-xs text-gray-400 mt-0.5">{match.league}</p>
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="flex -space-x-1.5 shrink-0">
+                <TeamCrest src={match.homeCrest} alt={match.homeTeam} size={18} />
+                <TeamCrest src={match.awayCrest} alt={match.awayTeam} size={18} />
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm text-gray-700 dark:text-gray-200 truncate">
+                  {match.homeTeam} vs {match.awayTeam}
+                </p>
+                <p className="text-xs text-gray-400 mt-0.5">{match.league}</p>
+              </div>
             </div>
             <span className="text-xs text-gray-400 whitespace-nowrap ml-2">
               {match.startTime}

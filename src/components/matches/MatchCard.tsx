@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { LiveBadge } from './LiveBadge';
+import { TeamCrest } from './TeamCrest';
 import { useFavorites } from '../../contexts/FavoritesContext';
 import type { Match } from '../../types';
 
@@ -49,9 +50,12 @@ export const MatchCard = ({ match }: MatchCardProps) => {
 
       {/* Teams + Score */}
       <div className="flex items-center">
-        <div className="flex-1">
-          <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">{match.homeTeam}</p>
-          <p className="text-xs text-gray-400 mt-0.5">Home</p>
+        <div className="flex-1 flex items-center gap-2">
+          <TeamCrest src={match.homeCrest} alt={match.homeTeam} />
+          <div>
+            <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">{match.homeTeam}</p>
+            <p className="text-xs text-gray-400 mt-0.5">Home</p>
+          </div>
         </div>
 
         <div className="text-center px-4">
@@ -64,29 +68,14 @@ export const MatchCard = ({ match }: MatchCardProps) => {
           )}
         </div>
 
-        <div className="flex-1 text-right">
-          <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">{match.awayTeam}</p>
-          <p className="text-xs text-gray-400 mt-0.5">Away</p>
+        <div className="flex-1 flex items-center justify-end gap-2 text-right">
+          <div>
+            <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">{match.awayTeam}</p>
+            <p className="text-xs text-gray-400 mt-0.5">Away</p>
+          </div>
+          <TeamCrest src={match.awayCrest} alt={match.awayTeam} />
         </div>
       </div>
-
-      {/* Stats */}
-      {isLive && match.stats && (
-        <div className="flex justify-between mt-3 pt-3 border-t border-gray-100">
-          {match.stats.possession && (
-            <span className="text-xs text-gray-400">Poss: {match.stats.possession}</span>
-          )}
-          {match.stats.shots && (
-            <span className="text-xs text-gray-400">Shots: {match.stats.shots}</span>
-          )}
-          {match.stats.corners && (
-            <span className="text-xs text-gray-400">Corners: {match.stats.corners}</span>
-          )}
-          {match.stats.rebounds && (
-            <span className="text-xs text-gray-400">Reb: {match.stats.rebounds}</span>
-          )}
-        </div>
-      )}
     </div>
   );
 };

@@ -1,6 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useMatchFull, useHeadToHead } from "../hooks/useMatchDetail";
 import { LiveBadge } from "../components/matches/LiveBadge";
+import { TeamCrest } from "../components/matches/TeamCrest";
 
 export const MatchDetailPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -68,11 +69,12 @@ export const MatchDetailPage = () => {
 
         {/* Teams + Score */}
         <div className="flex items-center justify-between">
-          <div className="flex-1 text-center">
+          <div className="flex-1 flex flex-col items-center gap-2 text-center">
+            <TeamCrest src={match.homeCrest} alt={match.homeTeam} size={44} />
             <p className="text-xl font-semibold text-gray-800 dark:text-gray-100">
               {match.homeTeam}
             </p>
-            <p className="text-xs text-gray-400 mt-1">Home</p>
+            <p className="text-xs text-gray-400 -mt-1">Home</p>
           </div>
 
           <div className="text-center px-6">
@@ -87,11 +89,12 @@ export const MatchDetailPage = () => {
             )}
           </div>
 
-          <div className="flex-1 text-center">
+          <div className="flex-1 flex flex-col items-center gap-2 text-center">
+            <TeamCrest src={match.awayCrest} alt={match.awayTeam} size={44} />
             <p className="text-xl font-semibold text-gray-800 dark:text-gray-100">
               {match.awayTeam}
             </p>
-            <p className="text-xs text-gray-400 mt-1">Away</p>
+            <p className="text-xs text-gray-400 -mt-1">Away</p>
           </div>
         </div>
 
