@@ -202,11 +202,12 @@ export const fetchUpcomingOnly = async (): Promise<Match[]> => {
   });
 };
 
-// ---- Standings  ----
+// ---- Standings (tabela lige) ----
 
 export interface StandingEntry {
   position: number;
   team: string;
+  teamId: number;
   crest: string | null;
   played: number;
   won: number;
@@ -250,6 +251,7 @@ export const fetchStandings = async (
   return total.table.map((row) => ({
     position: row.position,
     team: row.team.shortName ?? row.team.name,
+    teamId: row.team.id,
     crest: row.team.crest,
     played: row.playedGames,
     won: row.won,
@@ -261,7 +263,70 @@ export const fetchStandings = async (
   }));
 };
 
-// ---- Top scorers ----
+// ---- Forma tima (poslednjih 5 rezultata: W/D/L) ----
+
+export type FormResult = "W" | "D" | "L";
+
+const deriveResult = (scored: number, conceded: number): FormResult => {
+  if (scored > conceded) return "W";
+  if (scored < conceded) return "L";
+  return "D";
+};
+
+export const fetchCompetitionForm = async (
+  competitionCode: string,
+): Promise<Map<number, FormResult[]>> => {
+  const data = await apiFetch<MatchesResponse>(
+    `/competitions/${competitionCode}/matches?status=FINISHED&limit=100`,
+  );
+
+  const sorted = [...data.matches].sort(
+    (a, b) => new Date(a.utcDate).getTime() - new Date(b.utcDate).getTime(),
+  );
+
+  const formMap = new Map<number, FormResult[]>();
+  const pushResult = (teamId: number, result: FormResult) => {
+    const arr = formMap.get(teamId) ?? [];
+    arr.push(result);
+    if (arr.length > 5) arr.shift();
+    formMap.set(teamId, arr);
+  };
+
+  for (const m of sorted) {
+    const home = m.score.fullTime.home;
+    const away = m.score.fullTime.away;
+    if (home === null || away === null) continue;
+
+    pushResult(m.homeTeam.id, deriveResult(home, away));
+    pushResult(m.awayTeam.id, deriveResult(away, home));
+  }
+
+  return formMap;
+};
+
+export const fetchTeamForm = async (teamId: string): Promise<FormResult[]> => {
+  const data = await apiFetch<MatchesResponse>(
+    `/teams/${teamId}/matches?status=FINISHED&limit=5`,
+  );
+
+  const sorted = [...data.matches].sort(
+    (a, b) => new Date(a.utcDate).getTime() - new Date(b.utcDate).getTime(),
+  );
+
+  const results: FormResult[] = [];
+  for (const m of sorted) {
+    const home = m.score.fullTime.home;
+    const away = m.score.fullTime.away;
+    if (home === null || away === null) continue;
+
+    const isHome = String(m.homeTeam.id) === teamId;
+    results.push(isHome ? deriveResult(home, away) : deriveResult(away, home));
+  }
+
+  return results;
+};
+
+// ---- Top strelci (scorers) ----
 export interface TopScorer {
   playerId: number;
   playerName: string;
@@ -303,8 +368,6 @@ export const fetchTopScorers = async (
     playedMatches: s.playedMatches,
   }));
 };
-
-// ---- Pojedinacan mec po ID-ju
 
 export interface MatchDetail {
   venue: string | null;
@@ -354,7 +417,7 @@ export const fetchMatchFull = async (matchId: string): Promise<MatchFull> => {
   };
 };
 
-// ---- Head-to-head  ----
+// ---- Head-to-head
 
 export interface HeadToHeadMeeting {
   id: string;
@@ -418,7 +481,7 @@ export const fetchHeadToHead = async (matchId: string): Promise<HeadToHead> => {
   };
 };
 
-// ---- Team detail ----
+// ---- Detalji tima (za Team detail stranicu) ----
 
 export interface SquadPlayer {
   id: number;

@@ -1,5 +1,10 @@
 import { useQuery, useQueries } from "@tanstack/react-query";
-import { fetchMatchFull, fetchHeadToHead, fetchTeam } from "../services/api";
+import {
+  fetchMatchFull,
+  fetchHeadToHead,
+  fetchTeam,
+  fetchTeamForm,
+} from "../services/api";
 import type { Match } from "../types";
 
 export const useMatchFull = (matchId: string | undefined) => {
@@ -45,5 +50,14 @@ export const useTeam = (teamId: string | undefined) => {
     queryFn: () => fetchTeam(teamId as string),
     enabled: !!teamId,
     staleTime: 15 * 60 * 1000,
+  });
+};
+
+export const useTeamForm = (teamId: string | undefined) => {
+  return useQuery({
+    queryKey: ["teamForm", teamId],
+    queryFn: () => fetchTeamForm(teamId as string),
+    enabled: !!teamId,
+    staleTime: 10 * 60 * 1000,
   });
 };

@@ -1,7 +1,12 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useMatchFull, useHeadToHead } from "../hooks/useMatchDetail";
+import {
+  useMatchFull,
+  useHeadToHead,
+  useTeamForm,
+} from "../hooks/useMatchDetail";
 import { LiveBadge } from "../components/matches/LiveBadge";
 import { TeamCrest } from "../components/matches/TeamCrest";
+import { FormBadges } from "../components/matches/FormBadges";
 
 export const MatchDetailPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -14,6 +19,12 @@ export const MatchDetailPage = () => {
     isLoading: h2hLoading,
     isError: h2hError,
   } = useHeadToHead(id);
+  const { data: homeForm } = useTeamForm(
+    match ? String(match.homeTeamId) : undefined,
+  );
+  const { data: awayForm } = useTeamForm(
+    match ? String(match.awayTeamId) : undefined,
+  );
 
   if (isLoading) {
     return (
@@ -78,6 +89,9 @@ export const MatchDetailPage = () => {
               {match.homeTeam}
             </p>
             <p className="text-xs text-gray-400 -mt-1">Home</p>
+            {homeForm && homeForm.length > 0 && (
+              <FormBadges results={homeForm} size={16} />
+            )}
           </button>
 
           <div className="text-center px-6">
@@ -101,6 +115,9 @@ export const MatchDetailPage = () => {
               {match.awayTeam}
             </p>
             <p className="text-xs text-gray-400 -mt-1">Away</p>
+            {awayForm && awayForm.length > 0 && (
+              <FormBadges results={awayForm} size={16} />
+            )}
           </button>
         </div>
 

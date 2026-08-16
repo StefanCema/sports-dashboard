@@ -1,6 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useTeam } from "../hooks/useMatchDetail";
+import { useTeam, useTeamForm } from "../hooks/useMatchDetail";
 import { TeamCrest } from "../components/matches/TeamCrest";
+import { FormBadges } from "../components/matches/FormBadges";
 import type { SquadPlayer } from "../services/api";
 
 const categorize = (position: string | null): string => {
@@ -58,6 +59,7 @@ export const TeamDetailPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { data: team, isLoading, isError } = useTeam(id);
+  const { data: form } = useTeamForm(id);
 
   if (isLoading) {
     return (
@@ -94,16 +96,25 @@ export const TeamDetailPage = () => {
 
       {/* Header */}
       <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-6 mb-4">
-        <div className="flex items-center gap-4 mb-5">
-          <TeamCrest src={team.crest} alt={team.name} size={56} />
-          <div>
-            <h1 className="text-xl font-semibold text-gray-800 dark:text-gray-100">
-              {team.name}
-            </h1>
-            {team.venue && (
-              <p className="text-sm text-gray-400 mt-0.5">{team.venue}</p>
-            )}
+        <div className="flex items-center justify-between gap-4 mb-5">
+          <div className="flex items-center gap-4">
+            <TeamCrest src={team.crest} alt={team.name} size={56} />
+            <div>
+              <h1 className="text-xl font-semibold text-gray-800 dark:text-gray-100">
+                {team.name}
+              </h1>
+              {team.venue && (
+                <p className="text-sm text-gray-400 mt-0.5">{team.venue}</p>
+              )}
+            </div>
           </div>
+
+          {form && form.length > 0 && (
+            <div className="text-right shrink-0">
+              <p className="text-xs text-gray-400 mb-1.5">Form</p>
+              <FormBadges results={form} />
+            </div>
+          )}
         </div>
 
         <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
