@@ -13,16 +13,30 @@ import { StatsPage } from "./pages/StatsPage";
 import { useDarkMode } from "./hooks/useDarkMode";
 import { FavoritesProvider } from "./contexts/FavoritesContext";
 import { SearchProvider } from "./contexts/SearchContext";
+import { ApiError } from "./services/api";
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      retry: 2,
+      // NIKAD ne ponavljaj automatski na 429 (prekoracen limit) ili 404 (ne
+      // postoji) — ponovni pokusaj ne resava ni jedno ni drugo, samo trosi
+      // jos vise od uskog budzeta od 10 poziva/minut i produzava blokadu.
+      // Za ostale greske (mrezne, 5xx) i dalje ima smisla probati jos jednom.
+      retry: (failureCount, error) => {
+        if (
+          error instanceof ApiError &&
+          (error.status === 429 || error.status === 404)
+        ) {
+          return false;
+        }
+        return failureCount < 1;
+      },
       refetchOnWindowFocus: false,
     },
   },
 });
 
+// Layout sa sidebarom — koristi se za sve glavne tabove
 const MainLayout = ({ children }: { children: React.ReactNode }) => (
   <main className="max-w-6xl mx-auto px-4 md:px-6 py-6 flex flex-col md:flex-row gap-6">
     <div className="flex-1">{children}</div>
@@ -44,8 +58,11 @@ const App = () => {
               <Topbar isDark={isDark} onToggleDark={toggleDarkMode} />
 
               <Routes>
+                {/* Match detail — bez sidebara */}
                 <Route path="/match/:id" element={<MatchDetailPage />} />
 
+                {/* Glavni tabovi — svi sa sidebarom */}
+                {/* Matches: parent renderuje pod-tabove + Outlet za Live/Results/Upcoming */}
                 <Route
                   path="/"
                   element={
