@@ -53,6 +53,7 @@ type RawStatus =
   | "AWARDED";
 
 interface RawTeam {
+  id: number;
   name: string;
   shortName: string | null;
   crest: string | null;
@@ -126,6 +127,8 @@ const mapMatch = (raw: RawMatch): Match | null => {
     kickoffISO: kickoff.toISOString(),
     homeCrest: raw.homeTeam.crest,
     awayCrest: raw.awayTeam.crest,
+    homeTeamId: raw.homeTeam.id,
+    awayTeamId: raw.awayTeam.id,
   };
 };
 
@@ -199,7 +202,7 @@ export const fetchUpcomingOnly = async (): Promise<Match[]> => {
   });
 };
 
-// ---- Standings
+// ---- Standings  ----
 
 export interface StandingEntry {
   position: number;
@@ -258,7 +261,7 @@ export const fetchStandings = async (
   }));
 };
 
-// ---- Top strelci
+// ---- Top scorers ----
 export interface TopScorer {
   playerId: number;
   playerName: string;
@@ -351,7 +354,7 @@ export const fetchMatchFull = async (matchId: string): Promise<MatchFull> => {
   };
 };
 
-//  Head-to-head
+// ---- Head-to-head  ----
 
 export interface HeadToHeadMeeting {
   id: string;
@@ -382,26 +385,27 @@ interface RawH2HMatch {
 }
 
 interface RawH2HResponse {
-  head2head: {
-    numberOfMatches: number;
-    totalGoals: number;
-    homeTeam: { wins: number; draws: number; losses: number };
-    awayTeam: { wins: number; draws: number; losses: number };
+  head2head?: {
+    numberOfMatches?: number;
+    totalGoals?: number;
+    homeTeam?: { wins?: number; draws?: number; losses?: number };
+    awayTeam?: { wins?: number; draws?: number; losses?: number };
   };
-  matches: RawH2HMatch[];
+  matches?: RawH2HMatch[];
 }
 
 export const fetchHeadToHead = async (matchId: string): Promise<HeadToHead> => {
   const data = await apiFetch<RawH2HResponse>(
     `/matches/${matchId}/head2head?limit=5`,
   );
+  const h2h = data.head2head;
 
   return {
-    numberOfMatches: data.head2head.numberOfMatches,
-    homeWins: data.head2head.homeTeam.wins,
-    draws: data.head2head.homeTeam.draws,
-    awayWins: data.head2head.awayTeam.wins,
-    totalGoals: data.head2head.totalGoals,
+    numberOfMatches: h2h?.numberOfMatches ?? 0,
+    homeWins: h2h?.homeTeam?.wins ?? 0,
+    draws: h2h?.homeTeam?.draws ?? 0,
+    awayWins: h2h?.awayTeam?.wins ?? 0,
+    totalGoals: h2h?.totalGoals ?? 0,
     recentMeetings: (data.matches ?? []).map((m) => ({
       id: String(m.id),
       date: m.utcDate,
@@ -411,5 +415,64 @@ export const fetchHeadToHead = async (matchId: string): Promise<HeadToHead> => {
       awayScore: m.score.fullTime.away,
       competition: m.competition.name,
     })),
+  };
+};
+
+// ---- Team detail ----
+
+export interface SquadPlayer {
+  id: number;
+  name: string;
+  position: string | null;
+  dateOfBirth: string | null;
+  nationality: string | null;
+}
+
+export interface TeamDetail {
+  id: number;
+  name: string;
+  crest: string | null;
+  founded: number | null;
+  venue: string | null;
+  clubColors: string | null;
+  website: string | null;
+  coach: string | null;
+  squad: SquadPlayer[];
+  runningCompetitions: string[];
+}
+
+interface RawTeamDetail {
+  id: number;
+  name: string;
+  crest: string | null;
+  founded: number | null;
+  venue: string | null;
+  clubColors: string | null;
+  website: string | null;
+  coach: { name: string | null } | null;
+  squad: {
+    id: number;
+    name: string;
+    position: string | null;
+    dateOfBirth: string | null;
+    nationality: string | null;
+  }[];
+  runningCompetitions: { name: string }[];
+}
+
+export const fetchTeam = async (teamId: string): Promise<TeamDetail> => {
+  const data = await apiFetch<RawTeamDetail>(`/teams/${teamId}`);
+
+  return {
+    id: data.id,
+    name: data.name,
+    crest: data.crest,
+    founded: data.founded,
+    venue: data.venue,
+    clubColors: data.clubColors,
+    website: data.website,
+    coach: data.coach?.name ?? null,
+    squad: data.squad ?? [],
+    runningCompetitions: (data.runningCompetitions ?? []).map((c) => c.name),
   };
 };

@@ -37,6 +37,11 @@ export const MatchListView = ({
   );
   const { query } = useSearch();
 
+  // Sportovi koji STVARNO imaju bar jedan mec u trenutnom skupu — racunato iz
+  // sirovih podataka (pre primene sport filtera), da "All Sports" opcija ne
+  // zavisi sama od sebe. Sportovi bez podataka (npr. Basketball/Tennis/Baseball
+  // dok API pokriva samo fudbal) se ne nude — nema smisla filter opcija koja
+  // uvek vraca prazno.
   const availableSports = useMemo(() => {
     const seen: SportFilter[] = [];
     for (const m of matches) {
@@ -49,6 +54,9 @@ export const MatchListView = ({
     (f) => f.value === "all" || availableSports.includes(f.value),
   );
 
+  // Isti princip kao effectiveSelectedLeagues ispod — ako trenutno aktivan
+  // sport vise nije medju ponudjenima, tretiramo ga kao "all" BEZ setState
+  // u efektu (izracunato pri renderu, ne izaziva dodatni render ciklus).
   const effectiveActiveFilter: SportFilter =
     activeFilter === "all" || availableSports.includes(activeFilter)
       ? activeFilter

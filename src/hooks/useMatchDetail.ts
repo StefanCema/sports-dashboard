@@ -1,5 +1,5 @@
 import { useQuery, useQueries } from "@tanstack/react-query";
-import { fetchMatchFull, fetchHeadToHead } from "../services/api";
+import { fetchMatchFull, fetchHeadToHead, fetchTeam } from "../services/api";
 import type { Match } from "../types";
 
 export const useMatchFull = (matchId: string | undefined) => {
@@ -16,7 +16,7 @@ export const useHeadToHead = (matchId: string | undefined) => {
     queryKey: ["headToHead", matchId],
     queryFn: () => fetchHeadToHead(matchId as string),
     enabled: !!matchId,
-    staleTime: 20 * 60 * 1000, // istorijat se prakticno ne menja
+    staleTime: 20 * 60 * 1000,
   });
 };
 
@@ -37,4 +37,13 @@ export const useFavoriteMatches = (matchIds: string[]) => {
   const isError = matchIds.length > 0 && results.every((r) => r.isError);
 
   return { matches, isLoading, isError };
+};
+
+export const useTeam = (teamId: string | undefined) => {
+  return useQuery({
+    queryKey: ["team", teamId],
+    queryFn: () => fetchTeam(teamId as string),
+    enabled: !!teamId,
+    staleTime: 15 * 60 * 1000,
+  });
 };

@@ -7,6 +7,7 @@ import { LiveMatchesPage } from "./components/matches/LiveMatchesPage";
 import { ResultsPage } from "./components/matches/ResultsPage";
 import { UpcomingPage } from "./components/matches/UpcomingPage";
 import { MatchDetailPage } from "./pages/MatchDetailPage";
+import { TeamDetailPage } from "./pages/TeamDetailPage";
 import { FavoritesPage } from "./pages/FavoritesPage";
 import { StandingsPage } from "./pages/StandingsPage";
 import { StatsPage } from "./pages/StatsPage";
@@ -18,7 +19,6 @@ import { ApiError } from "./services/api";
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      // NIKAD ne ponavljaj automatski na 429  ili 404 samo trosi resurse ne resava problem
       retry: (failureCount, error) => {
         if (
           error instanceof ApiError &&
@@ -33,7 +33,6 @@ const queryClient = new QueryClient({
   },
 });
 
-// Layout sa sidebarom
 const MainLayout = ({ children }: { children: React.ReactNode }) => (
   <main className="max-w-6xl mx-auto px-4 md:px-6 py-6 flex flex-col md:flex-row gap-6">
     <div className="flex-1">{children}</div>
@@ -53,13 +52,9 @@ const App = () => {
           <BrowserRouter>
             <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
               <Topbar isDark={isDark} onToggleDark={toggleDarkMode} />
-
               <Routes>
-                {/* Match detail — bez sidebara */}
                 <Route path="/match/:id" element={<MatchDetailPage />} />
-
-                {/* Glavni tabovi — svi sa sidebarom */}
-                {/* Matches: parent renderuje pod-tabove + Outlet za Live/Results/Upcoming */}
+                <Route path="/team/:id" element={<TeamDetailPage />} />
                 <Route
                   path="/"
                   element={

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState } from 'react';
 
 interface TeamCrestProps {
   src: string | null;
@@ -6,6 +6,8 @@ interface TeamCrestProps {
   size?: number;
 }
 
+// Prikazuje logo tima; ako URL ne postoji ili slika ne uspe da se ucita
+// (npr. mrtav link), prikazuje se initial slovo umesto razbijene ikonice.
 export const TeamCrest = ({ src, alt, size = 24 }: TeamCrestProps) => {
   const [failed, setFailed] = useState(false);
 

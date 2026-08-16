@@ -12,6 +12,8 @@ export interface Match {
   kickoffISO: string;
   homeCrest: string | null;
   awayCrest: string | null;
+  homeTeamId: number;
+  awayTeamId: number;
 }
 
 export type SportFilter =
@@ -21,4 +23,5 @@ export type SportFilter =
   | "tennis"
   | "baseball";
 
+// Vrednosti su sada URL path-ovi
 export type NavTab = "/" | "/standings" | "/stats" | "/favorites";

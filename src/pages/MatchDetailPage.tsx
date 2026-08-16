@@ -69,13 +69,16 @@ export const MatchDetailPage = () => {
 
         {/* Teams + Score */}
         <div className="flex items-center justify-between">
-          <div className="flex-1 flex flex-col items-center gap-2 text-center">
+          <button
+            onClick={() => navigate(`/team/${match.homeTeamId}`)}
+            className="flex-1 flex flex-col items-center gap-2 text-center hover:opacity-75 transition-opacity"
+          >
             <TeamCrest src={match.homeCrest} alt={match.homeTeam} size={44} />
             <p className="text-xl font-semibold text-gray-800 dark:text-gray-100">
               {match.homeTeam}
             </p>
             <p className="text-xs text-gray-400 -mt-1">Home</p>
-          </div>
+          </button>
 
           <div className="text-center px-6">
             {match.status === "upcoming" ? (
@@ -89,13 +92,16 @@ export const MatchDetailPage = () => {
             )}
           </div>
 
-          <div className="flex-1 flex flex-col items-center gap-2 text-center">
+          <button
+            onClick={() => navigate(`/team/${match.awayTeamId}`)}
+            className="flex-1 flex flex-col items-center gap-2 text-center hover:opacity-75 transition-opacity"
+          >
             <TeamCrest src={match.awayCrest} alt={match.awayTeam} size={44} />
             <p className="text-xl font-semibold text-gray-800 dark:text-gray-100">
               {match.awayTeam}
             </p>
             <p className="text-xs text-gray-400 -mt-1">Away</p>
-          </div>
+          </button>
         </div>
 
         {/* Poluvreme / stadion / sudija — iz /matches/{id}, samo kad postoje podaci */}

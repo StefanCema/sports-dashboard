@@ -26,6 +26,7 @@ export const useTodaysMatches = () => {
   });
 };
 
+// Jedan hook koji merge-uje live + today — koristi se svuda
 export const useAllMatches = () => {
   const live = useLiveMatches();
   const todays = useTodaysMatches();

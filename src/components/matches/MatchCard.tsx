@@ -50,7 +50,13 @@ export const MatchCard = ({ match }: MatchCardProps) => {
 
       {/* Teams + Score */}
       <div className="flex items-center">
-        <div className="flex-1 flex items-center gap-2">
+        <div
+          onClick={e => {
+            e.stopPropagation();
+            navigate(`/team/${match.homeTeamId}`);
+          }}
+          className="flex-1 flex items-center gap-2 hover:opacity-75 transition-opacity"
+        >
           <TeamCrest src={match.homeCrest} alt={match.homeTeam} />
           <div>
             <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">{match.homeTeam}</p>
@@ -68,7 +74,13 @@ export const MatchCard = ({ match }: MatchCardProps) => {
           )}
         </div>
 
-        <div className="flex-1 flex items-center justify-end gap-2 text-right">
+        <div
+          onClick={e => {
+            e.stopPropagation();
+            navigate(`/team/${match.awayTeamId}`);
+          }}
+          className="flex-1 flex items-center justify-end gap-2 text-right hover:opacity-75 transition-opacity"
+        >
           <div>
             <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">{match.awayTeam}</p>
             <p className="text-xs text-gray-400 mt-0.5">Away</p>
