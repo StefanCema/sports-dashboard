@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import { useAllMatches } from "../../hooks/useMatches";
 import { TeamCrest } from "../matches/TeamCrest";
 
@@ -12,6 +13,7 @@ const isToday = (isoDate: string): boolean => {
 };
 
 export const Sidebar = () => {
+  const navigate = useNavigate();
   const { matches, isLoading } = useAllMatches();
   const todaysMatches = matches?.filter((m) => isToday(m.kickoffISO)) ?? [];
   const liveCount = todaysMatches.filter((m) => m.status === "live").length;
@@ -79,7 +81,8 @@ export const Sidebar = () => {
         {upcomingMatches.map((match, i) => (
           <div
             key={match.id}
-            className={`flex items-center justify-between py-2.5 ${
+            onClick={() => navigate(`/match/${match.id}`)}
+            className={`flex items-center justify-between py-2.5 cursor-pointer hover:opacity-70 transition-opacity ${
               i !== upcomingMatches.length - 1
                 ? "border-b border-gray-100 dark:border-gray-700"
                 : ""
@@ -87,8 +90,16 @@ export const Sidebar = () => {
           >
             <div className="flex items-center gap-2 min-w-0">
               <div className="flex -space-x-1.5 shrink-0">
-                <TeamCrest src={match.homeCrest} alt={match.homeTeam} size={18} />
-                <TeamCrest src={match.awayCrest} alt={match.awayTeam} size={18} />
+                <TeamCrest
+                  src={match.homeCrest}
+                  alt={match.homeTeam}
+                  size={18}
+                />
+                <TeamCrest
+                  src={match.awayCrest}
+                  alt={match.awayTeam}
+                  size={18}
+                />
               </div>
               <div className="min-w-0">
                 <p className="text-sm text-gray-700 dark:text-gray-200 truncate">
