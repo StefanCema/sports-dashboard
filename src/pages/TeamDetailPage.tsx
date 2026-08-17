@@ -3,6 +3,7 @@ import { useTeam, useTeamForm } from "../hooks/useMatchDetail";
 import { TeamCrest } from "../components/matches/TeamCrest";
 import { FormBadges } from "../components/matches/FormBadges";
 import type { SquadPlayer } from "../services/api";
+import { SkeletonTeamPage } from "../components/ui/PageSkeletons";
 
 const categorize = (position: string | null): string => {
   if (!position) return "Other";
@@ -62,11 +63,7 @@ export const TeamDetailPage = () => {
   const { data: form } = useTeamForm(id);
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64 text-gray-400 dark:text-gray-500">
-        Loading team...
-      </div>
-    );
+    return <SkeletonTeamPage />;
   }
 
   if (isError || !team) {

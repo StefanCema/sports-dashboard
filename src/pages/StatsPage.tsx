@@ -3,6 +3,7 @@ import { useTopScorers } from "../hooks/useTopScorers";
 import { LEAGUES } from "../constants/leagues";
 import { LeagueTabs } from "../components/ui/LeagueTabs";
 import { TeamCrest } from "../components/matches/TeamCrest";
+import { SkeletonScorersTable } from "../components/ui/PageSkeletons";
 
 export const StatsPage = () => {
   const [activeLeague, setActiveLeague] = useState(LEAGUES[0].code);
@@ -21,11 +22,7 @@ export const StatsPage = () => {
 
       <LeagueTabs active={activeLeague} onChange={setActiveLeague} />
 
-      {isLoading && (
-        <div className="flex items-center justify-center h-64">
-          <p className="text-gray-400 text-sm">Loading top scorers...</p>
-        </div>
-      )}
+      {isLoading && <SkeletonScorersTable />}
 
       {isError && (
         <div className="flex items-center justify-center h-64">

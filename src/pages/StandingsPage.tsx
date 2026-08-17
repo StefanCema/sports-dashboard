@@ -5,6 +5,7 @@ import { LEAGUES } from "../constants/leagues";
 import { LeagueTabs } from "../components/ui/LeagueTabs";
 import { TeamCrest } from "../components/matches/TeamCrest";
 import { FormBadges } from "../components/matches/FormBadges";
+import { SkeletonStandingsTable } from "../components/ui/PageSkeletons";
 
 export const StandingsPage = () => {
   const navigate = useNavigate();
@@ -20,11 +21,7 @@ export const StandingsPage = () => {
     <div>
       <LeagueTabs active={activeLeague} onChange={setActiveLeague} />
 
-      {isLoading && (
-        <div className="flex items-center justify-center h-64">
-          <p className="text-gray-400 text-sm">Loading standings...</p>
-        </div>
-      )}
+      {isLoading && <SkeletonStandingsTable />}
 
       {isError && (
         <div className="flex items-center justify-center h-64">

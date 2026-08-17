@@ -7,6 +7,7 @@ import {
 import { LiveBadge } from "../components/matches/LiveBadge";
 import { TeamCrest } from "../components/matches/TeamCrest";
 import { FormBadges } from "../components/matches/FormBadges";
+import { SkeletonMatchPage } from "../components/ui/PageSkeletons";
 
 export const MatchDetailPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -27,11 +28,7 @@ export const MatchDetailPage = () => {
   );
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64 text-gray-400 dark:text-gray-500">
-        Loading match...
-      </div>
-    );
+    return <SkeletonMatchPage />;
   }
 
   if (isError || !match) {
