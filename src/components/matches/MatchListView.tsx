@@ -213,6 +213,7 @@ export const MatchListView = ({
           <div key={league} className="mb-5">
             <button
               onClick={() => toggleCollapse(league)}
+              aria-expanded={!isCollapsed}
               className="w-full flex items-center justify-between mb-3 group"
             >
               <p className="text-xs font-medium text-gray-400 uppercase tracking-wider group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors">
@@ -222,6 +223,7 @@ export const MatchListView = ({
                 </span>
               </p>
               <span
+                aria-hidden="true"
                 className={`text-gray-400 text-xs transition-transform duration-150 ${
                   isCollapsed ? "-rotate-90" : ""
                 }`}

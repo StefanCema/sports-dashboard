@@ -26,6 +26,8 @@ export const Dropdown = ({ label, children }: DropdownProps) => {
     <div className="relative inline-block" ref={ref}>
       <button
         onClick={() => setOpen((o) => !o)}
+        aria-haspopup="true"
+        aria-expanded={open}
         className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium border bg-white dark:bg-gray-800 transition-colors
           ${
             open
@@ -35,6 +37,7 @@ export const Dropdown = ({ label, children }: DropdownProps) => {
       >
         {label}
         <span
+          aria-hidden="true"
           className={`text-xs text-gray-400 transition-transform duration-150 ${open ? "rotate-180" : ""}`}
         >
           ▾

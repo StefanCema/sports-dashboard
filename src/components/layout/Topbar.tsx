@@ -99,6 +99,8 @@ export const Topbar = ({ isDark, onToggleDark }: TopbarProps) => {
         {/* Dark mode toggle */}
         <button
           onClick={onToggleDark}
+          aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+          aria-pressed={isDark}
           className="p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 text-lg"
         >
           {isDark ? "☀️" : "🌙"}
@@ -106,12 +108,14 @@ export const Topbar = ({ isDark, onToggleDark }: TopbarProps) => {
 
         {/* Mobile hamburger */}
         <button
-          className="md:hidden p-2 rounded-lg hover:bg-gray-50"
+          className="md:hidden p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800"
           onClick={() => setMenuOpen((prev) => !prev)}
+          aria-label={menuOpen ? "Close menu" : "Open menu"}
+          aria-expanded={menuOpen}
         >
-          <div className="w-5 h-0.5 bg-gray-600 mb-1" />
-          <div className="w-5 h-0.5 bg-gray-600 mb-1" />
-          <div className="w-5 h-0.5 bg-gray-600" />
+          <div className="w-5 h-0.5 bg-gray-600 dark:bg-gray-300 mb-1" />
+          <div className="w-5 h-0.5 bg-gray-600 dark:bg-gray-300 mb-1" />
+          <div className="w-5 h-0.5 bg-gray-600 dark:bg-gray-300" />
         </button>
       </div>
 
