@@ -1,12 +1,7 @@
-module.exports = async function handler(req, res) {
-  // Izvlačimo i "path" i čudni "...path" iz Vercela, ostalo ide u query
-  const { path, "...path": spreadPath, ...query } = req.query;
+export default async function handler(req, res) {
+  const { path, ...query } = req.query;
 
-  // Koristimo onaj koji zapravo postoji
-  const actualPath = path || spreadPath;
-  const pathSegments = Array.isArray(actualPath)
-    ? actualPath.join("/")
-    : (actualPath ?? "");
+  const pathSegments = Array.isArray(path) ? path.join("/") : (path ?? "");
 
   const queryString = new URLSearchParams(query).toString();
   const url = `https://api.football-data.org/v4/${pathSegments}${queryString ? `?${queryString}` : ""}`;
@@ -20,13 +15,10 @@ module.exports = async function handler(req, res) {
 
     const body = await apiRes.text();
 
-    // Dodaj ovo privremeno da vidiš šta tačno vraća football-data ako pukne
     if (!apiRes.ok) {
-      return res.status(502).json({
-        error: "External API error",
-        status: apiRes.status,
-        details: body,
-        tokenExists: !!process.env.FOOTBALL_DATA_TOKEN,
+      return res.status(apiRes.status).json({
+        error: "Football Data API Error",
+        details: JSON.parse(body),
       });
     }
 
@@ -39,4 +31,4 @@ module.exports = async function handler(req, res) {
   } catch (err) {
     res.status(502).json({ message: "Proxy error", error: String(err) });
   }
-};
+}

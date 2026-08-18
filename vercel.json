@@ -9,20 +9,7 @@
       "destination": "/index.html"
     }
   ],
-
   "functions": {
-    "api/football/[...path].js": { "maxDuration": 10 }
-  },
-
-  "headers": [
-    {
-      "source": "/(.*)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "no-store, no-cache, must-revalidate"
-        }
-      ]
-    }
-  ]
+    "api/[...path].js": { "maxDuration": 10 }
+  }
 }
