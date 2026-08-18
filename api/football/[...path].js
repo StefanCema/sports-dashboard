@@ -19,6 +19,17 @@ export default async function handler(req, res) {
     });
 
     const body = await apiRes.text();
+
+    // Dodaj ovo privremeno da vidiš šta tačno vraća football-data ako pukne
+    if (!apiRes.ok) {
+      return res.status(502).json({
+        error: "External API error",
+        status: apiRes.status,
+        details: body,
+        tokenExists: !!process.env.FOOTBALL_DATA_TOKEN,
+      });
+    }
+
     res.status(apiRes.status);
     res.setHeader(
       "Content-Type",
