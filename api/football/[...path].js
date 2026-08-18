@@ -1,4 +1,4 @@
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   // Izvlačimo i "path" i čudni "...path" iz Vercela, ostalo ide u query
   const { path, "...path": spreadPath, ...query } = req.query;
 
@@ -39,4 +39,4 @@ export default async function handler(req, res) {
   } catch (err) {
     res.status(502).json({ message: "Proxy error", error: String(err) });
   }
-}
+};
