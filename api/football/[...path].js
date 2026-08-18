@@ -1,6 +1,12 @@
 export default async function handler(req, res) {
-  const { path, ...query } = req.query;
-  const pathSegments = Array.isArray(path) ? path.join("/") : (path ?? "");
+  // Izvlačimo i "path" i čudni "...path" iz Vercela, ostalo ide u query
+  const { path, "...path": spreadPath, ...query } = req.query;
+
+  // Koristimo onaj koji zapravo postoji
+  const actualPath = path || spreadPath;
+  const pathSegments = Array.isArray(actualPath)
+    ? actualPath.join("/")
+    : (actualPath ?? "");
 
   const queryString = new URLSearchParams(query).toString();
   const url = `https://api.football-data.org/v4/${pathSegments}${queryString ? `?${queryString}` : ""}`;
