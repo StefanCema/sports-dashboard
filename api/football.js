@@ -1,7 +1,8 @@
 export default async function handler(req, res) {
-  // req.query.path je niz, npr. ["competitions", "PL", "standings"]
+  // Uzimamo sve što je prosleđeno kroz query (zahvaljujući vercel.json rewrite-u)
   const { path, ...query } = req.query;
 
+  // Sastavljamo putanju ka spoljnom API-ju
   const pathSegments = Array.isArray(path) ? path.join("/") : (path ?? "");
 
   const queryString = new URLSearchParams(query).toString();

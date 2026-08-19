@@ -1,17 +1,12 @@
 {
   "rewrites": [
     {
-      "source": "/api/(.*)",
-      "destination": "/api/[...path]"
+      "source": "/api/football/:path*",
+      "destination": "/api/football"
     },
     {
       "source": "/(.*)",
       "destination": "/index.html"
     }
-  ],
-  "functions": {
-    "api/[...path].js": {
-      "maxDuration": 10
-    }
-  }
+  ]
 }
