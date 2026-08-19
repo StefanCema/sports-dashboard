@@ -4,7 +4,7 @@ A React + TypeScript sports dashboard for browsing football (soccer) matches, le
 
 > Personal portfolio project built to demonstrate React/TypeScript proficiency: data fetching & caching strategy, nested routing, state management, and working around the real-world constraints of a free third-party API (rate limits, CORS, delayed data).
 
-**[Live demo →](#)** _(add your deployed URL here)_
+\*\*[Live demo →]https://sports-dashboard-pmp277vjf-stefancemas-projects.vercel.app/upcoming
 
 ---
 
@@ -35,7 +35,7 @@ A React + TypeScript sports dashboard for browsing football (soccer) matches, le
 ### 1. Clone and install
 
 ```bash
-git clone <your-repo-url>
+git clone <https://github.com/StefanCema/sports-dashboard>
 cd sportlive
 npm install
 ```
