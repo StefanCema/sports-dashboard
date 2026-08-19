@@ -1,4 +1,5 @@
 export default async function handler(req, res) {
+  // req.query.path je niz, npr. ["competitions", "PL", "standings"]
   const { path, ...query } = req.query;
 
   const pathSegments = Array.isArray(path) ? path.join("/") : (path ?? "");
@@ -14,13 +15,6 @@ export default async function handler(req, res) {
     });
 
     const body = await apiRes.text();
-
-    if (!apiRes.ok) {
-      return res.status(apiRes.status).json({
-        error: "Football Data API Error",
-        details: JSON.parse(body),
-      });
-    }
 
     res.status(apiRes.status);
     res.setHeader(
