@@ -170,11 +170,7 @@ export const fetchLiveMatches = async (): Promise<Match[]> => {
   return all.filter((m) => m.status === "live");
 };
 
-// Live tab
-export const fetchLiveOnly = async (): Promise<Match[]> => {
-  const today = toISO(new Date());
-  return fetchMatches({ dateFrom: today, dateTo: today, status: "LIVE" });
-};
+export const fetchLiveOnly = fetchLiveMatches;
 
 // Results tab
 export const fetchRecentResults = async (): Promise<Match[]> => {
@@ -304,6 +300,7 @@ export const fetchCompetitionForm = async (
   return formMap;
 };
 
+// Team Detail stranicu
 export const fetchTeamForm = async (teamId: string): Promise<FormResult[]> => {
   const data = await apiFetch<MatchesResponse>(
     `/teams/${teamId}/matches?status=FINISHED&limit=5`,
@@ -326,7 +323,7 @@ export const fetchTeamForm = async (teamId: string): Promise<FormResult[]> => {
   return results;
 };
 
-// ---- Top strelci (scorers) ----
+// ---- Top scorers ----
 export interface TopScorer {
   playerId: number;
   playerName: string;
@@ -368,6 +365,8 @@ export const fetchTopScorers = async (
     playedMatches: s.playedMatches,
   }));
 };
+
+// ---- Pojedinacan mec po ID-ju (osnovni podaci + poluvreme/sudija/stadion) ----
 
 export interface MatchDetail {
   venue: string | null;
@@ -417,7 +416,7 @@ export const fetchMatchFull = async (matchId: string): Promise<MatchFull> => {
   };
 };
 
-// ---- Head-to-head
+// ---- Head-to-head ----
 
 export interface HeadToHeadMeeting {
   id: string;
@@ -481,7 +480,7 @@ export const fetchHeadToHead = async (matchId: string): Promise<HeadToHead> => {
   };
 };
 
-// ---- Detalji tima (za Team detail stranicu) ----
+// ---- Team detail ----
 
 export interface SquadPlayer {
   id: number;
